@@ -1,0 +1,25 @@
+# use glob syntax.
+syntax: glob
+
+# vim swap files
+*.swp
+# backup & tmp/* files
+*.bak
+tmp/
+
+# C compiled
+*.o
+a.out
+
+# python compiled files
+*.pyc
+*.pyo
+
+# python setuptool files
+build/
+*.egg-info/
+
+# switch to regexp syntax.
+#syntax: regexp
+#^\.pc/
+

@@ -1,0 +1,2 @@
+recursive-include course/public *
+recursive-include course/templates *
