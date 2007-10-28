@@ -1,0 +1,465 @@
+#!/usr/bin/env python
+
+import sys
+from optparse import OptionParser
+import ConfigParser
+import csv
+import sqlalchemy as sa
+
+
+###  Parsing class list downloaded from SMU academic information system
+
+# this is a sample, it is changing all the time :-(
+sample_smu_class_list_download = '''
+ID;ORACLE
+;
+C;Y1;X1;K"Record Number"
+C;Y1;X2;K"Student Name"
+C;Y1;X3;K"ID"
+C;Y1;X4;K"Reg Status"
+C;Y1;X5;K"Program"
+C;Y1;X6;K"Major"
+C;Y1;X7;K"Credits"
+Content-type: text/html; charset=ISO-8859-1
+Set-Cookie: SESSID=MEIwMEtOMzEzMDkw;
+
+; Row 2
+;
+C;Y1
+C;X1;K"1"
+C;X2;K"Ate, Food"
+C;X3;K"A00111111"
+C;X4;K"RW - **Web Registered**"
+C;X5;K"Bachelor of Arts (4yr)"
+C;X6;K"Undeclared"
+C;X7;K0
+F;W1 1 3
+F;W2 2 30
+F;W3 3 10
+F;W4 4 30
+F;W5 5 30
+F;W6 6 25
+F;W7 7 5
+; Row 3
+;
+C;Y2
+C;X1;K"2"
+C;X2;K"Baked, Bis K."
+C;X3;K"A00222222"
+C;X4;K"RW - **Web Registered**"
+C;X5;K"Bachelor of Arts (4yr)"
+C;X6;K"Undeclared"
+C;X7;K0
+F;W1 1 3
+F;W2 2 30
+F;W3 3 10
+F;W4 4 30
+F;W5 5 30
+F;W6 6 25
+F;W7 7 5
+....
+; Row 30
+;
+C;Y3
+C;X1;K"3"
+C;X2;K"Yawn, Loud"
+C;X3;K"A00333333"
+C;X4;K"RW - **Web Registered**"
+C;X5;K"Bachelor of Commerce (4yr)"
+C;X6;K"Undeclared"
+C;X7;K0
+F;W1 1 3
+F;W2 2 30
+F;W3 3 10
+F;W4 4 30
+F;W5 5 30
+F;W6 6 25
+F;W7 7 5
+</TABLE>
+<P class="whitespace1">
+E
+'''
+
+def smu_extract_class_list(f, sort='by_name'):
+    '''
+    input: an open file handle to SMU "excel" download file
+    analyze the file and extract a class list into a dictionary:
+       students[id] = [surname, given_names, program, major]
+    return this dictionary
+    '''
+    students = []
+    for x in f.readlines():
+        if 'C;X2;' in x:
+            surname, given_names = x.split('"')[1].split(',')
+            surname = surname.strip()
+            given_names = given_names.strip()
+            given_names = given_names.strip()
+        elif 'C;X3;' in x:
+            id = x.split('"')[1]
+        elif 'C;X5;' in x:
+            program = x.split('"')[1]
+            program = program.strip()
+        elif 'C;X6;' in x:
+            major = x.split('"')[1]
+            major = major.strip()
+            students.append([id, surname, given_names, '@', program, major])
+    return sorted_class_list(students, sort='by_name')
+
+
+def sorted_class_list(students, sort='by_name'):
+    key_func = {}
+    key_func['by_name'] = lambda x : x[1]
+    key_func['by_id'] = lambda x : x[0]
+    return sorted(students, key=key_func[sort])
+
+
+###  Course database  ---------------------------------------------------------
+
+def mk_sqlite_db(dbpath):
+    dburl = 'sqlite:///%s' % dbpath
+    db = sa.create_engine(dburl)
+    metadata = sa.MetaData(db)
+
+    students = sa.Table('students', metadata,
+        sa.Column('id',            sa.String(9),   primary_key=True),
+        sa.Column('surname',       sa.String(30)),
+        sa.Column('given_names',   sa.String(30)),
+        sa.Column('email',         sa.String(30)),
+        sa.Column('program',       sa.String(30)),
+        sa.Column('major',         sa.String(20)),
+    )
+
+    tests = sa.Table('tests', metadata,
+        sa.Column('test_id',       sa.String(9),   primary_key=True),
+        sa.Column('date',          sa.Date()),
+        sa.Column('max_marks',     sa.Integer()),
+    )
+
+    results = sa.Table('results', metadata,             
+        sa.Column('id',            sa.String(9),   primary_key=True),
+        sa.Column('test_id',       sa.String(9),   primary_key=True),
+        sa.Column('marks',         sa.Integer()),
+    )
+
+    metadata.create_all()
+
+    return metadata
+
+
+#  insert and update routines  ------------------------------------------------
+
+def populate_students(meta, db_list):
+    st = meta.tables['students']
+    i = st.insert()
+    print st.name
+    for x in db_list[2:]:
+        id, surname, given_names, email, program, major = x[:6]
+        print 'insert %s %s' % (id, surname)
+        i.execute(id=id, surname=surname, given_names=given_names,
+                  email=email, program=program, major=major)
+
+
+import datetime
+
+def populate_tests(meta, db_list):
+    tt = meta.tables['tests']
+    dates = [
+        [2007,  9, 18],
+        [2007,  9, 25],
+        [2007, 10,  2],
+        [2007, 10,  9],
+        [2007, 10, 18],
+    ]
+    i = tt.insert()
+    print tt.name
+    for test, max, date in zip([x for x in db_list[0][6:]],
+                               [y for y in db_list[1][6:]],
+                               dates):
+        print 'insert %s %s %s' % (test, max, date)
+        y = datetime.date(*date)
+        i.execute(test_id=test, max_marks=max, date=y)
+
+
+def populate_results(meta, db_list):
+    rt = meta.tables['results']
+    i = rt.insert()
+    print rt.name
+    tnames = db_list[0][6:]
+    for x in db_list[2:]:
+        id = x[0]
+        for t, y in zip (tnames, x[6:]):
+            if 1:
+                print 'insert  %s %s %s' % (id, t, y)
+                i.execute(id=id, test_id=t, marks=y)
+            else:
+                print 'skipped %s %s' % (id, t)
+
+
+#  queries  -------------------------------------------------------------------
+
+def meta_auto_load(engine):
+    meta = sa.MetaData()
+    meta.bind = engine
+    meta.reflect()
+    return meta
+
+
+def get_marks(meta, id):
+    '''
+    return [(test_id, marks, max_marks), ...] for the given student id
+    '''
+    st = meta.tables['students']
+    tt = meta.tables['tests']
+    rt = meta.tables['results']
+    s = sa.select(
+        [tt.c.test_id, rt.c.marks, tt.c.max_marks],
+        (id == st.c.id) &
+        (st.c.id == rt.c.id) &
+        (tt.c.test_id == rt.c.test_id)
+        )
+    rs = s.execute()
+    return list(rs)
+ 
+
+def get_results(meta, id):
+    '''
+    return [(test_id, percentage), ...] for the given student id
+    '''
+    st = meta.tables['students']
+    tt = meta.tables['tests']
+    rt = meta.tables['results']
+    s = sa.select(
+        [tt.c.test_id, rt.c.marks, tt.c.max_marks],
+        (id == st.c.id) &
+        (st.c.id == rt.c.id) &
+        (tt.c.test_id == rt.c.test_id)
+        )
+    rs = s.execute()
+    ys = []
+    for x in rs:
+        if x.marks:
+            ys.append((x.test_id, x.marks * 100.0 / x.max_marks))
+        else:
+            ys.append((x[0], '---'))
+    return ys
+ 
+
+def get_class_list(meta):
+    st = meta.tables['students']
+    # s = sa.select([st.c.id, st.c.surname, st.c.given_names])
+    s = st.select()
+    s = s.order_by(st.c.surname)
+    rs = s.execute()
+    return list(rs)
+
+
+###  printing  ----------------------------------------------------------------
+
+def print_results(meta):
+    ids = []
+    for x in get_class_list(meta):
+        name = '%s, %s' % (x.surname, x.given_names)
+        print '%s  %-22s' % (x.id, name),
+        # print get_marks(meta, x.id)
+        ys = get_results(meta, x.id)
+        for y in ys:
+            try:
+                print ' %6.2f%%' % y[1],
+            except TypeError:
+                print ' %6s ' % y[1],
+        print
+
+
+def print_email(meta):
+    for x in get_class_list(meta):
+        print '%s, %s <%s>' % (x.surname, x.given_names, x.email)
+
+
+###  CSV utilities  -----------------------------------------------------------
+
+Header_students = ['id', 'surname', 'given_names', 'email', 'program', 'major']
+Header_tests = ['test', 'date', 'maximum']
+Header_results = [ 'id', 'test', 'marks']
+Header2 = ['Maximum', '', '', '', '', '']
+Header3 = ['Date', '', '', '', '', '']
+
+
+def convert_integer(ls):
+    'Replace every integer string in a list with the integer it represents'
+    for i,x in enumerate(ls):
+        if x.isdigit():
+            ls[i] = int(x)
+    return ls
+
+
+def read_csv_list(fname):
+    rs = csv.reader(open(fname, 'rb'),
+        skipinitialspace = True,
+        )
+    return map(convert_integer, list(rs))
+
+
+def print_csv_list(pylist):
+    wr = csv.writer(sys.stdout,
+        dialect='excel',
+        # quoting=csv.QUOTE_NONNUMERIC,
+    )
+    for x in pylist:
+        wr.writerow(x)
+
+
+def fulldump(meta):
+    st = meta.tables['students']
+    tt = meta.tables['tests']
+    rt = meta.tables['results']
+    strows = st.select().execute()
+    ttrows = tt.select().execute()
+    rtrows = rt.select().execute()
+    print '# table STUDENTS'
+    print_csv_list([Header_students])
+    print_csv_list(strows)
+    print
+    print '# table TESTS'
+    print_csv_list([Header_tests])
+    print_csv_list(ttrows)
+    print
+    print '# table RESULTS'
+    print_csv_list([Header_results])
+    print_csv_list(rtrows)
+
+ 
+###  M a i n  ----------------------------------------------------------------
+
+usage = '''Usage:
+
+    course-util command [options] [files ...]
+
+Available commands:
+
+ create     create sqlite db from downloaded class list
+ print      print various plain text tables/lists from the db
+ dump       dump various csv lists from the db
+ upload     upload test results
+
+Type "course-util --help command" to get particular details.
+'''
+
+commands = [ 'create', 'dump', 'upload', 'print']
+
+helps = {
+'create': '''
+    course-util create class-list db-file
+
+Create an SQLite DB from the class list downloaded from the
+academic information system.
+''',
+
+'dump': '''
+    course-util dump [option] db-file
+
+Dump various csv list on the standard output.
+
+Exactly one of the following options must be given:
+
+    -f --full   dump the full database
+    -x --excel  excel csv template for the marker
+''',
+
+'upload' : '''
+    course-util update db-file marks-file
+
+Upload the results of one test into the DB.
+''',
+
+'print' : '''
+    course-util results [option] db-file
+
+Print various plain text tables/lists from the db.
+
+Exactly one of the following options must be given:
+
+    -r --results    print all results(%) so far.
+    -c --class      class list
+    -m --email      email list
+''',
+}
+
+
+def main():
+    opt_parser = OptionParser(usage, add_help_option = False)
+    opt_parser.add_option('-h', '--help', 
+        action='store_true', dest='help', default=False,
+        )
+    opt_parser.add_option('-f', '--full', 
+        action='store_true', dest='fulldump', default=False,
+        )
+    opt_parser.add_option('-r', '--results', 
+        action='store_true', dest='results', default=False,
+        )
+    opt_parser.add_option('-m', '--email', 
+        action='store_true', dest='email', default=False,
+        )
+    opt_parser.add_option('-c', '--class', 
+        action='store_true', dest='classlist', default=False,
+        )
+    opt_parser.add_option('-x', '--excel', 
+        action='store_true', dest='excel', default=False,
+        )
+
+    (options, args) = opt_parser.parse_args()
+
+    if len(args) < 1 or (args[0] not in commands):
+        print usage
+        raise SystemExit(0)
+    else:
+        cmd = args[0]
+
+    opt_parser.usage = helps[cmd]
+    if options.help:
+        print helps[cmd]
+        raise SystemExit(0)
+
+    if cmd == 'create':
+        if len(args) != 3:
+            opt_parser.error('incorrect number of arguments')
+        students = smu_extract_class_list(open(args[1]))
+        meta = mk_sqlite_db(args[2])
+        populate_students(meta, students)
+
+    elif cmd == 'dump':
+        if len(args) != 2:
+            opt_parser.error('incorrect number of arguments')
+        engine = sa.create_engine('sqlite:///%s' % args[1])
+        meta = meta_auto_load(engine)
+        if options.email or options.classlist or options.results:
+            opt_parser.error('invalid option')
+        elif options.excel:
+            raise NotImplementedError
+        elif options.fulldump:
+            fulldump(meta)
+        else:
+            opt_parser.error('missing option')
+
+    elif cmd == 'print':
+        if len(args) != 2:
+            opt_parser.error('incorrect number of arguments')
+        engine = sa.create_engine('sqlite:///%s' % args[1])
+        meta = meta_auto_load(engine)
+        if options.excel or options.fulldump:
+            opt_parser.error('invalid option')
+        elif options.email:
+            print_email(meta)
+        elif options.classlist:
+            raise NotImplementedError
+        elif options.results:
+            print_results(meta)
+        else:
+            opt_parser.error('missing option')
+
+    elif cmd == 'upload':
+        pass
+
+###
+main()
+
+# vim: ai ts=4 et sw=4
