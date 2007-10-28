@@ -17,8 +17,9 @@ def make_map():
     map.connect('error/:action/:id', controller='error')
 
     # CUSTOM ROUTES HERE
-
-    map.connect(':controller/:action/:id')
+    map.connect('math0010', ':action', controller='math0010', 
+                action='index')
+    # Route used as a final resort when nothing is found
     map.connect('*url', controller='template', action='view')
 
     return map

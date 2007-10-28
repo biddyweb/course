@@ -1,29 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-   "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
+# -*- coding: utf-8 -*-
+
+<%inherit file="/base.mako" />
+
+<%def name="head_tags()">
   <title>St Mary's MATH 0010 Fall 2007/8</title>
-  <style>
-    body { background-color: #fff; color: #333; }
-
-    body, p {
-      font-family: verdana, arial, helvetica, sans-serif;
-      font-size:   12px;
-      line-height: 18px;
-    }
-    pre {
-      background-color: #eee;
-      padding: 10px;
-      font-size: 11px;
-      line-height: 13px;
-    }
-
-    a { color: #000; }
-    a:visited { color: #666; }
-    a:hover { color: #fff; background-color:#000; }
-  </style>
-</head>
-<body>
+  </%def>
 
 <h3 align="center"><a href ="http://www.smu.ca/">
 St Mary's University</a></h3>
@@ -139,7 +120,7 @@ to check your work from the textbook.  </p>
 
 <h3>Login</h3>
 
-<p>Login should come here</p>
-
-</body>
-</html>
+${h.form(h.url_for('math0010', action='login'), method='post')}
+Student ID: ${h.text_field('id', value='A')} 
+            ${h.submit('login')}
+${h.end_form() }

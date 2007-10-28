@@ -19,6 +19,9 @@ a.out
 build/
 *.egg-info/
 
+# pylons session and template cache
+data/*
+
 # switch to regexp syntax.
 #syntax: regexp
 #^\.pc/
