@@ -4,7 +4,11 @@
 
 <%def name="head_tags()">
     <title>Welcome ${session['login_id']}</title>
-
+    <style>
+      blockquote pre{
+        font-size: x-large;
+      }
+    </style>
 </%def>
 
 <div style="float: right;">
@@ -12,7 +16,7 @@
 &nbsp;
 <a href="${h.url_for('math0010')}">back to main page</a>
 </div>
-<H1>MOTD</H1>
+
 <blockquote>
 <pre>
 ${c.message}
