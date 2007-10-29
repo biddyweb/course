@@ -49,7 +49,7 @@ def get_results(meta, id):
     rs = s.execute()
     ys = []
     for x in rs:
-        if x.marks:
+        if x.marks != '':
             ys.append((x.test_id, x.marks * 100.0 / x.max_marks))
         else:
             ys.append((x[0], '---'))
