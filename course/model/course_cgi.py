@@ -3,7 +3,6 @@ A CGI/SCGI module for the Course system
 '''
 
 import sqlalchemy as sa
-from os import listdir
 
 ###  Course database  ---------------------------------------------------------
 
