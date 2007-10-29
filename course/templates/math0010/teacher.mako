@@ -23,8 +23,8 @@
     <th scope='col'>ID</th>
     <th scope='col'>Name</th>
     <th scope='col'>Email</th>
-    <th scope='col'>Program</th>
-    <th scope='col'>Major</th>
+##    <th scope='col'>Program</th>
+##    <th scope='col'>Major</th>
 % for x in c.all_marks[0][1:]:
     <th scope='col'>${x[0]}</th>
 % endfor
@@ -39,8 +39,8 @@ class_td = ['', 'alt']
     <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].surname}
     ,&nbsp; ${c.all_marks[x][0].given_names}</td>
     <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].email}</td>
-    <td class="${class_td[x % len(class_td)]}"> ${c.all_marks[x][0].program}</td>
-    <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].major}</td>
+##    <td class="${class_td[x % len(class_td)]}"> ${c.all_marks[x][0].program}</td>
+##    <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].major}</td>
 % for y in c.all_marks[x][1:]:
     % if type(y[1]) == float:
         <td class="${class_td[x % len(class_td)]}">${'%6.2f%%'%y[1]}</td>
