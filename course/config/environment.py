@@ -6,6 +6,7 @@ from pylons import config
 import course.lib.app_globals as app_globals
 import course.lib.helpers
 from course.config.routing import make_map
+from sqlalchemy import engine_from_config
 
 def load_environment(global_conf, app_conf):
     """Configure the Pylons environment via the ``pylons.config``
@@ -24,8 +25,10 @@ def load_environment(global_conf, app_conf):
 
     config['routes.map'] = make_map()
     config['pylons.g'] = app_globals.Globals()
+    config['pylons.g'].sa_engine = \
+        engine_from_config(config, 'sqlalchemy.')
     config['pylons.h'] = course.lib.helpers
-
+    
     # Customize templating options via this variable
     tmpl_options = config['buffet.template_options']
 

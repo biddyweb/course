@@ -119,8 +119,16 @@ the class. </p>
 to check your work from the textbook.  </p>
 
 <h3>Login</h3>
-
+% if not c.logged_in:
 ${h.form(h.url_for('math0010', action='login'), method='post')}
 Student ID: ${h.text_field('id', value='A')} 
             ${h.submit('login')}
 ${h.end_form() }
+% else:
+<p> You are logged in as ${c.login_id}, to go to your area click 
+<a href="${h.url_for('math0010', action='login')}">my area</a>
+<br/>
+To logout click 
+<a href="${h.url_for('math0010', action='logout')}">logout</a>
+</p>
+% endif

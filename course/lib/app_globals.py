@@ -11,4 +11,5 @@ class Globals(object):
         initialization and is available during requests via the 'g'
         variable
         """
-        pass
+        self.msg_dir = config['course.msg_dir']
+        self.downloads_dir = config['course.downloads_dir']

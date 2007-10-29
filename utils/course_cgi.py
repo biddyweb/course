@@ -3,7 +3,7 @@ A CGI/SCGI module for the Course system
 '''
 
 import sqlalchemy as sa
-
+from os import listdir
 
 ###  Course database  ---------------------------------------------------------
 
@@ -78,6 +78,32 @@ def get_class_list(meta):
     rs = s.execute()
     return list(rs)
 
+### Other Functions -----------------------------------------------------------
+def get_msg(msg_dir, id):
+    '''
+    Get all messages in msg_dir relevant to student with id=id
+    '''
+    msg_paths = ['%s/motd.txt'%msg_dir]
+    msgs = []
+    for path in msg_paths:
+        f = open(path)
+        msgs.append(f.read())
+        f.close()
+    return "\n".join(msgs)
+
+def get_fnames(dir):
+    '''
+    Get all downloadable file names in dir
+    '''
+    return listdir(dir) 
+
+def isSudo(id):
+    if id == 'PETER':
+        return True
+    return False
+
+#    def isStudent(self):
+#        return True
 
 #  main just for testing the module  ------------------------------------------`
 
@@ -103,4 +129,4 @@ if __name__ == '__main__':
         print
 
 
-# vim: ai ts=4 et sw=4
+# vim: ai ts=4 et sw=4 tw=80
