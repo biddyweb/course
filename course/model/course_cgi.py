@@ -79,24 +79,6 @@ def get_class_list(meta):
     return list(rs)
 
 ### Other Functions -----------------------------------------------------------
-def get_msg(msg_dir, id):
-    '''
-    Get all messages in msg_dir relevant to student with id=id
-    '''
-    msg_paths = ['%s/motd.txt'%msg_dir]
-    msgs = []
-    for path in msg_paths:
-        f = open(path)
-        msgs.append(f.read())
-        f.close()
-    return "\n".join(msgs)
-
-def get_fnames(dir):
-    '''
-    Get all downloadable file names in dir
-    '''
-    return listdir(dir) 
-
 def isSudo(id):
     if id == 'PETER':
         return True

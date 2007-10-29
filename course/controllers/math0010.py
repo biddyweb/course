@@ -54,9 +54,8 @@ class Math0010Controller(BaseController):
             c.student_info = students[0]
             c.student_marks = model.course_db.get_results( 
                 model.meta, session['login_id'])
-            c.message = model.course_db.get_msg(
-                g.msg_dir, session['login_id']) 
-            c.files = model.course_db.get_fnames(g.downloads_dir)
+            c.message = h.get_msg(g.msg_dir) 
+            c.files = h.get_fnames(g.downloads_dir)
             log_message = 'Student area for %s accessed from %s'%(
                 students[0], ip_address)
             log.info(log_message)
