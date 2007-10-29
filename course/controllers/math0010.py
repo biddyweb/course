@@ -28,7 +28,7 @@ class Math0010Controller(BaseController):
             c.error_msg = 'Invalid use of login script'
             log.info('Invalid login page access from %s'%(ip_address))
             return render('/error.mako')
-        if model.course_cgi.isSudo(id):
+        if model.course_db.isSudo(id):
            redirect_to(action='teacher_area') 
         else:
            redirect_to(action='student_area')
@@ -40,7 +40,7 @@ class Math0010Controller(BaseController):
                ' %s using no login_id'%ip_address
             log.info(log_message)
             return render('/nologin.mako')
-        students = model.course_cgi.get_student( 
+        students = model.course_db.get_student( 
             model.meta, session['login_id'])
         if students == []:
             c.error_msg = 'Invalid Student ID'
@@ -52,11 +52,11 @@ class Math0010Controller(BaseController):
             return render('/error.mako')
         else:
             c.student_info = students[0]
-            c.student_marks = model.course_cgi.get_results( 
+            c.student_marks = model.course_db.get_results( 
                 model.meta, session['login_id'])
-            c.message = model.course_cgi.get_msg(
+            c.message = model.course_db.get_msg(
                 g.msg_dir, session['login_id']) 
-            c.files = model.course_cgi.get_fnames(g.downloads_dir)
+            c.files = model.course_db.get_fnames(g.downloads_dir)
             log_message = 'Student area for %s accessed from %s'%(
                 students[0], ip_address)
             log.info(log_message)
@@ -69,7 +69,7 @@ class Math0010Controller(BaseController):
                ' %s using no login_id'%ip_address
             log.info(log_message)
             return render('/nologin.mako')
-        if not model.course_cgi.isSudo(session['login_id']):
+        if not model.course_db.isSudo(session['login_id']):
             c.error_msg = 'Invalid Login ID'
             log_message = 'Illegal access attempt of teacher area from'\
                ' %s using login_id %s'%(ip_address, session['login_id'])
@@ -80,11 +80,11 @@ class Math0010Controller(BaseController):
         log_message = 'Teacher area for %s accessed from %s'%(
             session['login_id'], ip_address)
         log.info(log_message)
-        students = model.course_cgi.get_class_list(model.meta)
+        students = model.course_db.get_class_list(model.meta)
         c.all_marks = []
         for x in students:
             row = [x]
-            row += model.course_cgi.get_results(model.meta, x.id)
+            row += model.course_db.get_results(model.meta, x.id)
             c.all_marks.append(row)
         return render('/math0010/teacher.mako')
 

@@ -1,6 +1,5 @@
 from pylons import config
-from utils import course_cgi
+import course_cgi as course_db
 
 engine = config['pylons.g'].sa_engine
-meta = course_cgi.meta_auto_load(engine)
-
+meta = course_db.meta_auto_load(engine)
