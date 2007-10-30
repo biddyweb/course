@@ -19,6 +19,9 @@ def make_map():
     # CUSTOM ROUTES HERE
     map.connect('math0010', ':action', controller='math0010', 
                 action='index')
+
+    map.connect('downloads', 'downloads/:id', controller='math0010', 
+                action='downloads')
     # Route used as a final resort when nothing is found
     map.connect('*url', controller='template', action='view')
 
