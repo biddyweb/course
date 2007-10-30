@@ -4,7 +4,6 @@
 
 <%def name="head_tags()">
     <title>Welcome ${session['login_id']}</title>
-
 </%def>
 
 <div style="float: right;">
@@ -38,7 +37,16 @@ class_td = ['', 'alt']
     <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].id}</td>
     <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].surname}
     ,&nbsp; ${c.all_marks[x][0].given_names}</td>
-    <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].email}</td>
+    <td class="${class_td[x % len(class_td)]}" style="text-align: center;">
+    <% email = c.all_marks[x][0].email %>
+    % if email:
+      <a href="mailto:${email}">
+        <img src="${h.url_for('/graphics/email.png')}" alt='Email' />
+      </a>
+    % else:
+        <img src="${h.url_for('/graphics/not_available.png')}" alt='N/A' />
+    % endif
+    </td>
 ##    <td class="${class_td[x % len(class_td)]}"> ${c.all_marks[x][0].program}</td>
 ##    <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].major}</td>
 % for y in c.all_marks[x][1:]:

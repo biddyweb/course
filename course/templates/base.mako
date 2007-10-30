@@ -7,9 +7,8 @@
       body, p{
           font-family: verdana, arial, helvetica, sans-serif;
       }
-      .error {
-          color: #990000;
-      }
+      .error { color: #990000; }
+      img { border: 0px; }
       th {
           border-right: 1px solid #C1DAD7;
           border-bottom: 1px solid #C1DAD7;
