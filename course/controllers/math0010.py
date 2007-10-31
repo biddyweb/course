@@ -27,8 +27,11 @@ class Math0010Controller(BaseController):
         elif 'login_id' in session:
             id = session['login_id']
         else:
-            c.error_msg = 'Invalid use of login script'
-            log.info('Invalid login page access from %s'%(ip_address))
+            c.error_msg = 'Go to main page to login.'
+            log.info(
+                '%s accessed login page directly. innapropriate action'\
+                %(ip_address)
+            )
             return render('/error.mako')
         if model.course_db.isSudo(id):
            redirect_to(action='teacher_area') 
