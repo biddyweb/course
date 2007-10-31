@@ -24,7 +24,7 @@ Phone: (902) 494-1080
 
 
 <h2>Course Contents</h2>
-
+<p>
 Elementary set theory and the real number system.  Factorization.
 Inequalities, absolute values, and interval notation. Techniques of
 solving a variety of equations and inequalities in a single variable.
@@ -32,25 +32,27 @@ The Cartesian plane and representation of ordered pairs of real numbers.
 Elements of analytic geometry. Relations, functions, and graphs, with
 emphasis on the polynomial, exponential, logarithmic functions, and
 polynomial and rational equations.
+</p>
 
 <h2>Required Textbook</h2>
-
+<p>
 <b>Mark Dugopolski: College Algebra and Trigonometry</b>
 <br/>
 Fourth Edition, 2007, Pearson
 <br/>
 ISBN 0-321-35692-6
-
 </p>
-In the first semester, Chapters P and 1-4 will be covered.
+
+<p>In the first semester, Chapters P and 1-4 will be covered.</p>
 
 <h2>Schedule</h2>
-
+<p>
 <b>Lectures:</b> 5:30 pm - 6:45 pm Tuesday and Thursday, McNally East Wing 110
-
 </p>
 
+<p>
 <b>Recitation:</b> 7:00 pm - 8:15 pm Tuesday, McNally East Wing 110
+</p>
 
 <p>You are required to attend both the lectures and the recitation. </p>
 
@@ -59,12 +61,10 @@ In the first semester, Chapters P and 1-4 will be covered.
 The Midterm Test will be held on Oct 23 Tuesday at 5:30
 in McNally East Wing 110.
 </b>
-
 It will contain problems based on all material covered up to the lecture
 on Oct 18. In terms of the sections of the textbook, that means: full
 Chapter P; full Chapter 1 except 1.5; and Sections 2.1, 2.2 and 2.3 from
 Chapter 2.
-
 </p>
 
 

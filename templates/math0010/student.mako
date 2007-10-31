@@ -3,7 +3,11 @@
 <%inherit file="/base.mako" />
 
 <%def name="head_tags()">
-    <title>Welcome ${session['login_id']}</title>
+    <title>
+    Welcome 
+    ${c.student_info.given_names}
+    ${c.student_info.surname}
+    </title>
     <style>
       blockquote pre{
         font-size: x-large;

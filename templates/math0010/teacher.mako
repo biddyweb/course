@@ -3,7 +3,7 @@
 <%inherit file="/base.mako" />
 
 <%def name="head_tags()">
-    <title>Welcome ${session['login_id']}</title>
+    <title>Welcome Teacher</title>
 </%def>
 
 <div style="float: right;">

@@ -7,6 +7,5 @@
 </%def>
 
 <h3 class='error'>${c.error_msg}</h3>
-<h3 class='error'>This incident was reported!</h3>
 <br/>
 <a href="${h.url_for('math0010')}">main_page</a>
