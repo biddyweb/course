@@ -1,7 +1,0 @@
-Test message. 123 456 789
-Abcde
-fghi Multi Line
-   with formatted
-        text in the page.   /
-                            /
-                            /
