@@ -4,9 +4,6 @@
 <html>
   <head>
     <style>
-      body, p{
-          font-family: verdana, arial, helvetica, sans-serif;
-      }
       .error { color: #990000; }
       img { border: 0px; }
       th {
