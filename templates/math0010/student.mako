@@ -70,7 +70,7 @@ marks = c.student_marks
 </div>
 
 <div style="float: left; margin-right: 20%;">
-  <h3>Downlaods</h3>
+  <h3>Downloads</h3>
   % for x in c.files:
     <div>
       <a href="${h.url_for('/downloads/%s'%x)}">${x}</a> 
