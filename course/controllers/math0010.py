@@ -27,7 +27,8 @@ class Math0010Controller(BaseController):
             id = session['login_id']
             log_flag = False
         else:
-            c.error_msg = 'Go to the main page to login.'
+            c.error_msg = 'No login id given <br/> Go to the main page'\
+                          ' to login.'
             log.info(
                 'Login attempted without login info.'
                 ,extra = {'clientip': ip_address}
@@ -37,7 +38,8 @@ class Math0010Controller(BaseController):
 
         students = model.course_db.get_student(model.meta, id)
         if students == []:
-            c.error_msg = 'No Student with ID=%s'%id
+            c.error_msg = 'No Student with ID=%s go to main page to'\
+                          'login'%id
             log_message = 'Student ID %s not found in DB'%id
             log.info(log_message, extra={'clientip': ip_address})
             return render('/error.mako')
