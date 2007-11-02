@@ -3,7 +3,11 @@
 <%inherit file="/base.mako" />
 
 <%def name="head_tags()">
-    <title>Welcome Teacher</title>
+    <title>
+    Welcome
+    ${c.teacher_info['given_names']}
+    ${c.teacher_info['surname']}
+    </title>
 </%def>
 
 <div style="float: right;">

@@ -5,8 +5,8 @@
 <%def name="head_tags()">
     <title>
     Welcome 
-    ${c.student_info.given_names}
-    ${c.student_info.surname}
+    ${c.student_info['given_names']}
+    ${c.student_info['surname']}
     </title>
     <style>
       blockquote pre{
@@ -34,11 +34,11 @@ ${c.message}
   <table>
   <tr>
     <th scope="row" class="specalt">ID</th>
-    <td class="alt">${c.student_info.id}</td>
+    <td class="alt">${c.student_info['id']}</td>
   </tr>
   <tr>
     <th scope="row" class="spec">NAME</th>
-    <td >${c.student_info.surname}, ${c.student_info.given_names} </td>
+    <td >${c.student_info['surname']}, ${c.student_info['given_names']} </td>
   </tr>
   </table> 
 </div>

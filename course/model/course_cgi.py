@@ -68,23 +68,36 @@ def get_student(meta, id):
 
 def get_class_list(meta):
     '''
-    return the full "students" table
+    return the full "students" table without prof.
     '''
     st = meta.tables['students']
     # s = sa.select([st.c.id, st.c.surname, st.c.given_names])
     s = st.select()
     s = s.order_by(st.c.surname)
     rs = s.execute()
-    return list(rs)
+    lrs = list(rs)
+    x = 0
+    while x < len(lrs):
+        if checkProf(lrs[x]):
+            del lrs[x]
+            continue
+        x+=1
+    return lrs
 
 ### Other Functions -----------------------------------------------------------
-def isSudo(id):
-    if id == 'PETER':
+def isSudo(meta, id):
+    st = meta.tables['students']
+    s = st.select(whereclause=(id == st.c.id))
+    s = s.order_by(st.c.surname)
+    rs = s.execute()
+    student = rs.fetchone()
+    return checkProf(student)
+
+def checkProf(student):
+    if student.major == 'PROF' and student.program == 'PROF':
         return True
     return False
 
-#    def isStudent(self):
-#        return True
 
 #  main just for testing the module  ------------------------------------------`
 
