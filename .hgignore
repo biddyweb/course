@@ -18,6 +18,8 @@ a.out
 # python setuptool files
 build/
 *.egg-info/
+dist*
+installed-files.log
 
 # pylons session and template cache
 data/*
