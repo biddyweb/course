@@ -40,8 +40,6 @@ class Math0010Controller(BaseController):
             c.error_msg = 'No Student with ID=%s'%id
             log_message = 'Student ID %s not found in DB'%id
             log.info(log_message, extra={'clientip': ip_address})
-            del session['login_id']  
-            session.save()
             return render('/error.mako')
         else:
             session['login_id'] = id
