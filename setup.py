@@ -5,9 +5,36 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
+import os, sys
+import course
+
+_course_version = '0.1.0'
+
+# NICE HACK by P. Dobcsanyi
+def course_egg_path():
+    x = 'course-%s'%_course_version
+    for p in sys.path:
+        if x in p: return p
+    return ''
+
+def course_dist_egg():
+    x = 'course-%s'%_course_version
+    for p in os.listdir('dist'):
+        if x in p: return 'dist/'+p
+    return ''
+
+
+if len(sys.argv) > 1 and sys.argv[1] == '--course-egg-path':
+    print course_egg_path()
+    raise SystemExit(0)
+
+if len(sys.argv) > 1 and sys.argv[1] == '--course-dist-egg-path':
+    print course_dist_egg()
+    raise SystemExit(0)
+
 setup(
     name='course',
-    version="",
+    version=_course_version,
     #description='',
     #author='',
     #author_email='',
