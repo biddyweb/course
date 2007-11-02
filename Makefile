@@ -21,9 +21,13 @@ install:
 	cp -ar templates ${INSTALL_DIR}/templates
 
 uninstall:
+	python setup.py --course-egg-path >tmp.path_to_egg
+	echo $$TMP_ENV_VAR 
+	python setup.py --course-egg-path
 	easy_install -m `python setup.py --course-dist-egg-path` 
 	xargs <installed-files.log  rm -f
-	rm -fr `python setup.py --course-egg-path`
+	xargs <tmp.path_to_egg  rm -fr
+	rm -f tmp.path_to_egg
 
 purge: uninstall
 	rm -fr ${INSTALL_DIR}
