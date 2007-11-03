@@ -1,2 +1,145 @@
-python setup.py egg_info //if course.egg_info not available
-make install //change db path and install location in Makefile
+= Installation Manual =
+
+== Dependencies ==
+
+ * Python 2.5
+ * EasyInstall
+
+== Install Instructions ==
+
+Clone the egg from the source mercurial repository, or download a
+previously zipped copy of the repo and unzip it.
+
+Run the following commands:
+
+    cd dir-containing-dist/
+    python setup.py egg_info
+    make install
+
+This will install the following:
+
+  - The required folders from the unzipped dist directory will be
+    installed in /var/local/course/
+  - The sqlite db to be used by the course package will be copied over
+    from /var/tmp/math0010.sqlite
+  - The course-egg will be installed as a py egg in
+    /usr/local/lib/python2.5/site-packages
+  - Scripts related to the course utility would be installed in
+    /usr/local/bin
+
+A few files will be created in the unzipped distribution dir, including
+'installed-files.log' do not remove this file as it will be needed if
+you plan to uninstall this package. This file contains the paths to all
+the files that were installed via easy_install script.
+
+To change the destination directories or the default src location of the
+sqlite database you will have to modify these paths in the Makefile
+found in the root of the unzipped destination directory. Same directory
+where make install was run.
+
+
+== Un-Install Instructions ==
+
+If you have not deleted 'installed-files.log' you will be able to
+uninstall the course package. To uninstall the dist egg and all files
+listed in 'installed-files.log' do the following:
+    
+    cd dir-containing-dist/
+    make uninstall
+
+If you want to purge all files relating to course including the ones
+installed in /var/local/course/ do the following instead.
+
+    cd dir-containing-dist/
+    make uninstall
+
+== Running the application ==
+
+To start the application you would need to do the following. The
+destination directory referred to here would map to /var/local/course by
+default, unless the default Makefile has been changed.
+
+    cd destination-dir
+    paster serve production.ini
+
+This will start the application with the default options. To modify the
+options relative config options need to be modified in the
+production.ini. The following are the options that may likely need to be
+modified if needed.
+
+[server:main]
+# with knowledge of pylons this would indicate the serving method and 
+# can be changed to allow different access method to course
+use = egg:Paste#http 
+# The host on which this application is served. When set to localhost
+# only incoming connections from localhost will be accepted
+host = localhost
+# The port number on which this application is listening
+port = 5000
+
+== Debian init.d ==
+
+Along with the package in the unzipped distribution there should be
+included a file named 'course-init.sh'. This is an init.d script that
+can be used to automatically start|stop|restart the course application.
+The defaults switch to a user:group -> course:course prior to starting
+the application. Therefore such a system user that is able to read the
+destination directory (default /var/local/course (path explicit in
+script)) needs to be existent. This should be changed for other setups
+of this package. To install the course-init.sh on debian machines run
+the following commands as root or user with sufficient privileges to
+modify /etc/init.d
+
+    cd distribution-dir
+    cp course-init.sh /etc/init.d/course
+    update-rc.d course install
+
+If you want to remove the script from startup
+    
+    update-rc.d course remove
+    # optionally run
+    rm /etc/init.d/course
+
+== Deploying Behind Apache2 ==
+
+To deploy behind apache2 you need to install some modules by typing the
+following commands:
+    sudo a2enmod proxy
+    sudo a2enmod proxy_http
+    # optionally run (requirement explained in config section bellow)
+    sudo a2enmod rewrite
+
+Configuring apache requires modifications to the relative site config
+that will serve the application. Usually in /etc/apache2/sites-available
+
+Add the following configuration:    
+    # Proxy General Config
+    ProxyPreserveHost On
+    <Proxy *>
+        Order deny,allow
+        Allow from all
+    </Proxy>
+
+    <Location /mycourse/>
+        ProxyPass http://localhost:5000/
+        ProxyPassReverse http://localhost:5000/
+    </Location>
+    
+    # If you had installed the rewrite module above then this config
+    # would be triggered. This allows the user to not have to place a
+    # trailing slash at the end of the url to find your application
+    <IfModule rewrite_module>
+        RewriteEngine On
+        # the following lines are used to secure from possible trace 
+        # scripting attacks
+        RewriteCond %{REQUEST_METHOD} ^TRACE
+        RewriteRule .* - [F]
+        # This rule allows access to mycourse without a trailing slash
+        RewriteRule ^/mycourse$ /mycourse/ [R]
+    </IfModule>
+
+Change the production.ini, installed by default in /var/local/course to
+include the name mycourse in the [filter:proxy-prefix] prefix entry. And
+the port entry should map to 5000 under the [server:main] section. Feel
+free to change these values correlating the changes both to the
+production.ini file and the apache-site-config file.
