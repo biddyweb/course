@@ -1,8 +1,10 @@
 #!/bin/bash
 
-INSTALL_DIR=/var/local/teaching/math0010
+INSTALL_DIR=/var/local/course/math0010
 DB_PATH=/var/tmp
 DB_FILE=math0010.sqlite
+LIB_DIR=/usr/local/lib/python2.5/site-packages
+SCRIPTS_DIR=/usr/local/bin
 
 usage:
 	@echo 
@@ -11,7 +13,7 @@ usage:
 
 install:
 	python setup.py bdist_egg
-	easy_install --record installed-files.log `python setup.py --course-dist-egg-path` 
+	easy_install -d ${LIB_DIR} -s ${SCRIPTS_DIR} --record installed-files.log `python setup.py --course-dist-egg-path` 
 	mkdir -p ${INSTALL_DIR}/db
 	mkdir -p ${INSTALL_DIR}/private/messages
 	mkdir -p ${INSTALL_DIR}/private/downloads
