@@ -20,7 +20,7 @@ install:
 	cp -ar public ${INSTALL_DIR}/public
 	cp -ar templates ${INSTALL_DIR}/templates
 
-uninstall:
+uninstall: installed-files.log
 	python setup.py --course-egg-path >tmp.path_to_egg
 	echo $$TMP_ENV_VAR 
 	python setup.py --course-egg-path
