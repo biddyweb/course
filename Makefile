@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INSTALL_DIR=/var/local/course/math0010
+INSTALL_DIR=/var/local/course
 DB_PATH=/var/tmp
 DB_FILE=math0010.sqlite
 LIB_DIR=/usr/local/lib/python2.5/site-packages
