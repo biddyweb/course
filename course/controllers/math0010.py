@@ -38,8 +38,8 @@ class Math0010Controller(BaseController):
 
         students = model.course_db.get_student(model.meta, id)
         if students == []:
-            c.error_msg = 'No Student with ID=%s go to main page to'\
-                          'login'%id
+            c.error_msg = 'No Student with ID=%s <br/> Go to main page to'\
+                          ' login'%id
             log_message = 'Student ID %s not found in DB'%id
             log.info(log_message, extra={'clientip': ip_address})
             return render('/error.mako')
