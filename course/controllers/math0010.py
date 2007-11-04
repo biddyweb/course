@@ -13,7 +13,7 @@ class Math0010Controller(BaseController):
     def index(self):
         if 'login_id' in session:
             c.logged_in = True
-            c.login_id = session['login_id']
+            c.login_name = "%(given_names)s %(surname)s"%session['login_info']
         else:
             c.logged_in = False
         return render('/math0010/index.mako')

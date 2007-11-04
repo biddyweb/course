@@ -125,7 +125,7 @@ Student ID: ${h.text_field('id', value='A')}
             ${h.submit('login')}
 ${h.end_form() }
 % else:
-<p> You are logged in as ${c.login_id}, to go to your area click 
+<p> You are logged in as ${c.login_name}, to go to your area click 
 <a href="${h.url_for('math0010', action='login')}">my area</a>
 <br/>
 To logout click 
