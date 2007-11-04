@@ -37,6 +37,29 @@ sqlite database you will have to modify these paths in the Makefile
 found in the root of the unzipped destination directory. Same directory
 where make install was run.
 
+=== How to use the installed directories ===
+
+In the destination directory you will find the following directories.
+Along with each directory is a description of the files located within.
+
+templates/      - The templates rendered by the course application.
+                  .mako files directly in this directory include a base
+                  template for all files along with two error templates.
+    math0010/   - The templates that render the specific course pages.
+private/        - A directory that is not directly in the doc root
+    messages/   - All files here are to be concatenated in alphabetical
+                  order and displayed to the course students at the top
+                  of there page.
+    downloads/  - All files listed here are downloadable by logged in
+                  students and will be listed in their login page.
+public/         - This is the applications document root. Directories
+                  created here can be accessed without login. However,
+                  make sure to not create directory names that map ontop
+                  of other urls in the system as these will take
+                  precedence and mask the standard ones.
+    graphics/   - A directory containing some graphics used by the
+                  course application.
+
 
 == Un-Install Instructions ==
 
