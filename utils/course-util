@@ -579,10 +579,10 @@ def main():
 
     (options, args) = opt_parser.parse_args()
 
-    import logging
-
-    logging.basicConfig()
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+#    import logging
+#
+#    logging.basicConfig()
+#    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
     if len(args) < 1 or (args[0] not in commands):
         print usage
@@ -638,16 +638,14 @@ def main():
         engine = sa.create_engine('sqlite:///%s' % args[1],
             strategy='threadlocal')
         csv_file = args[2]
+        force_flag = False 
         if options.force_flag:
-            force_flag == True
-        else:
-            force_flag == False 
+            force_flag = True
+            raise NotImplementedError
         if options.classlist:
-            insert_students(engine.connect(), csv_file, force_flag) 
+            insert_students(engine, csv_file, force_flag) 
         elif options.results:
-            header = [ 'id', 'test_id', 'marks' ]
-            csv_insert(engine.connect(), insert_result, csv_file,
-                       header, force_flag) 
+            insert_results(engine, csv_file, force_flag) 
         else:
             opt_parser.error('missing or invalid option')
 
