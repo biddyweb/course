@@ -3,8 +3,10 @@
 INSTALL_DIR=/var/local/course
 DB_PATH=/var/tmp
 DB_FILE=math0010.sqlite
-LIB_DIR=/usr/local/lib/python2.5/site-packages
-SCRIPTS_DIR=/usr/local/bin
+#LIB_DIR=/usr/local/lib/python2.5/site-packages
+#SCRIPTS_DIR=/usr/local/bin
+LIB_DIR=/home/hatem/local/lib/python
+SCRIPTS_DIR=/home/hatem/local/bin
 
 usage:
 	@echo 
