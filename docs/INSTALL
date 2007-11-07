@@ -166,3 +166,31 @@ include the name mycourse in the [filter:proxy-prefix] prefix entry. And
 the port entry should map to 5000 under the [server:main] section. Feel
 free to change these values correlating the changes both to the
 production.ini file and the apache-site-config file.
+
+== Use with mod_wsgi ==
+
+Install the most recent mod_wsgi for Apache2
+
+The apache config:
+
+    WSGIDaemonProcess batman.cs.dal.ca user=course group=course
+
+    WSGIScriptAlias /math0010 /var/local/course/math0010-wsgi.py
+
+    <Directory "/var/tmp/course">
+        AllowOverride None
+        Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
+        Order deny,allow
+        # Allow from 127.0.0.0/255.0.0.0 ::1/128
+        Allow from all
+    </Directory>
+
+The "math0010-wsgi.py" should be installed in /var/local/course/.
+TODO: adjust Makefile
+
+The /var/local/course/data (or whatever) for cache and session stuff
+should be owned by www-data:www-data
+
+The application itself runs as course:course owned thread of apache.
+
+PROBLEM: the syslogging disappeared when launched with wsgi - fix it!
