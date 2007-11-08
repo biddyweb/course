@@ -17,9 +17,9 @@ install:
 	mkdir -p ${INSTALL_DIR}/private/downloads
 	mkdir -p ${INSTALL_DIR}/data/paster
 #	cp -a  ${DB_PATH}/${DB_FILE} ${INSTALL_DIR}/db/${DB_FILE}
-	cp -a  etc/production.ini ${INSTALL_DIR}/
-	cp -ar public ${INSTALL_DIR}/public
-	cp -ar templates ${INSTALL_DIR}/templates
+	cp -a etc/production.ini ${INSTALL_DIR}/
+	cp -a public ${INSTALL_DIR}/public
+	cp -a templates ${INSTALL_DIR}/templates
 
 uninstall: installed-files.log
 	python setup.py --course-egg-path >tmp.path_to_egg
