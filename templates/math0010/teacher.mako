@@ -8,6 +8,11 @@
     ${c.teacher_info['given_names']}
     ${c.teacher_info['surname']}
     </title>
+    <style>
+        nobr { white-space: nowrap; }
+        .smalltext {font-size: small;} 
+        .centertext {text-align: center;} 
+    </style>
 </%def>
 
 <div style="float: right;">
@@ -29,7 +34,8 @@
 ##    <th scope='col'>Program</th>
 ##    <th scope='col'>Major</th>
 % for x in c.all_marks[0][1:]:
-    <th scope='col'>${x[0]}</th>
+    <th scope='col' class='centertext'><nobr>${x[0]}</nobr><br/>
+    <nobr class='smalltext'>${x[2]}</nobr></th>
 % endfor
   </tr>
 <%
