@@ -48,6 +48,7 @@ ${c.message}
 <table>
 <tr>
   <th scope="col">Test</th>
+  <th scope="col">Date</th>
   <th scope="col">Score</th>
 </tr>
 <%
@@ -57,8 +58,9 @@ marks = c.student_marks
 %>
 % for x in range(len(marks)):
 <tr>
-  <th scope="row" class="${class_th[x % len(class_th)]}">${marks[x][0]}</th>
   <% y = marks[x]  %>
+  <th scope="row" class="${class_th[x % len(class_th)]}">${y[0]}</th>
+  <td class="${class_td[x % len(class_td)]}">${y[2]}</td>
   % if type(y[1]) == float:
       <td class="${class_td[x % len(class_td)]}">${'%6.2f%%'%y[1]}</td>
   % else:

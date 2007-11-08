@@ -49,9 +49,9 @@ def get_results(meta, id):
     ys = []
     for x in rs:
         if x.marks != '':
-            ys.append((x.test_id, x.marks * 100.0 / x.max_marks))
+            ys.append((x.test_id, x.marks * 100.0 / x.max_marks, x.date))
         else:
-            ys.append((x[0], '---'))
+            ys.append((x[0], '---', x.date))
     return ys
  
 
