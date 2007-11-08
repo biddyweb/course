@@ -1,5 +1,3 @@
-#!/bin/bash
-
 INSTALL_DIR=/var/local/course
 DB_PATH=/var/tmp
 DB_FILE=math0010.sqlite
