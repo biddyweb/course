@@ -1,0 +1,21 @@
+#!/bin/sh -e
+
+COURSE_DIR=/var/local/course
+PASTER_DIR=${COURSE_DIR}/data/paster
+USER=course
+GROUP=course
+
+case "$1" in
+  start)
+    paster serve --daemon --user=${USER} --group=${GROUP} --pid-file=${PASTER_DIR}/paster.pid --log-file=${PASTER_DIR}/paster.log ${COURSE_DIR}/production.ini start
+    ;;
+  stop)
+    paster serve --daemon --user=${USER} --group=${GROUP} --pid-file=${PASTER_DIR}/paster.pid --log-file=${PASTER_DIR}/paster.log ${COURSE_DIR}/production.ini stop
+    ;;
+  restart)
+    paster serve --daemon --user=${USER} --group=${GROUP} --pid-file=${PASTER_DIR}/paster.pid --log-file=${PASTER_DIR}/paster.log ${COURSE_DIR}/production.ini restart
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|restart}"
+    exit 1
+esac
