@@ -3,10 +3,8 @@
 INSTALL_DIR=/var/local/course
 DB_PATH=/var/tmp
 DB_FILE=math0010.sqlite
-#LIB_DIR=/usr/local/lib/python2.5/site-packages
-#SCRIPTS_DIR=/usr/local/bin
-LIB_DIR=/home/hatem/local/lib/python
-SCRIPTS_DIR=/home/hatem/local/bin
+LIB_DIR=/usr/local/lib/python2.5/site-packages
+SCRIPTS_DIR=/usr/local/bin
 
 usage:
 	@echo 
@@ -19,7 +17,8 @@ install:
 	mkdir -p ${INSTALL_DIR}/db
 	mkdir -p ${INSTALL_DIR}/private/messages
 	mkdir -p ${INSTALL_DIR}/private/downloads
-	cp -a  ${DB_PATH}/${DB_FILE} ${INSTALL_DIR}/db/${DB_FILE}
+	mkdir -p ${INSTALL_DIR}/data/paster
+#	cp -a  ${DB_PATH}/${DB_FILE} ${INSTALL_DIR}/db/${DB_FILE}
 	cp -a  production.ini ${INSTALL_DIR}/
 	cp -ar public ${INSTALL_DIR}/public
 	cp -ar templates ${INSTALL_DIR}/templates
