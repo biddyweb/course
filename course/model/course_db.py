@@ -1,5 +1,5 @@
 '''
-A CGI/SCGI module for the Course system
+A module for the Course system
 '''
 
 import sqlalchemy as sa
@@ -40,11 +40,11 @@ def get_results(meta, id):
     tt = meta.tables['tests']
     rt = meta.tables['results']
     s = sa.select(
-        [tt.c.test_id, rt.c.marks, tt.c.max_marks],
+        [tt.c.test_id, rt.c.marks, tt.c.max_marks, tt.c.date],
         (id == st.c.id) &
         (st.c.id == rt.c.id) &
         (tt.c.test_id == rt.c.test_id)
-        )
+        ).order_by(tt.c.date)
     rs = s.execute()
     ys = []
     for x in rs:
