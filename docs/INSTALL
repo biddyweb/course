@@ -42,17 +42,17 @@ where make install was run.
 In the destination directory you will find the following directories.
 Along with each directory is a description of the files located within.
 
-templates/      - The templates rendered by the course application.
+ templates/     - The templates rendered by the course application.
                   .mako files directly in this directory include a base
                   template for all files along with two error templates.
     math0010/   - The templates that render the specific course pages.
-private/        - A directory that is not directly in the doc root
-    messages/   - All files here are to be concatenated in alphabetical
+
+ messages/       - All files here are to be concatenated in alphabetical
                   order and displayed to the course students at the top
                   of there page.
-    downloads/  - All files listed here are downloadable by logged in
+ downloads/      - All files listed here are downloadable by logged in
                   students and will be listed in their login page.
-public/         - This is the applications document root. Directories
+ public/         - This is the applications document root. Directories
                   created here can be accessed without login. However,
                   make sure to not create directory names that map ontop
                   of other urls in the system as these will take
@@ -60,6 +60,7 @@ public/         - This is the applications document root. Directories
     graphics/   - A directory containing some graphics used by the
                   course application.
 
+ run/           - for cache and session stuff 
 
 == Un-Install Instructions ==
 
@@ -173,11 +174,15 @@ Install the most recent mod_wsgi for Apache2
 
 The apache config:
 
+# with mod_wsgi
+
+# production site
+
     WSGIDaemonProcess batman.cs.dal.ca user=course group=course
 
-    WSGIScriptAlias /math0010 /var/local/course/math0010-wsgi.py
+    WSGIScriptAlias /math0010 /var/local/course/etc/wsgi-starter.py
 
-    <Directory "/var/tmp/course">
+    <Directory "/var/local/course">
         AllowOverride None
         Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
         Order deny,allow
@@ -185,10 +190,18 @@ The apache config:
         Allow from all
     </Directory>
 
-The "etc/math0010-wsgi.py" should be installed in /var/local/course/.
-TODO: adjust Makefile
+# testing site
 
-The /var/local/course/data (or whatever) for cache and session stuff
-should be owned by www-data:www-data
+#    wsgiscriptalias /testcourse /var/tmp/course/wsgi-starter.py
+#
+#    <directory "/var/tmp/course">
+#        allowoverride none
+#        options execcgi -multiviews +symlinksifownermatch
+#        order deny,allow
+#        allow from 127.0.0.0/255.0.0.0 ::1/128
+#        # allow from all
+#    </Directory>
 
-The application itself runs as course:course owned thread of apache.
+The /var/local/course/run for cache and session stuff should be owned by
+www-data:www-data The application itself runs as course:course owned
+thread of apache.  whatever that means - it does not work as expected.
