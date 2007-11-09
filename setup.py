@@ -8,7 +8,7 @@ except ImportError:
 import os, sys
 import course
 
-_course_version = '0.1.0'
+_course_version = '0.1.1'
 
 # NICE HACK by P. Dobcsanyi
 def course_egg_path():
