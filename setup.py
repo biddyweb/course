@@ -39,6 +39,7 @@ setup(
     #author='',
     #author_email='',
     #url='',
+    scripts = [ 'utils/course-util' ],
     install_requires=["Pylons>=0.9.6.1"],
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
