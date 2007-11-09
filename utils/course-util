@@ -160,39 +160,6 @@ def populate_students(meta, db_list):
 
 import datetime
 
-def populate_tests(meta, db_list):
-    tt = meta.tables['tests']
-    dates = [
-        [2007,  9, 18],
-        [2007,  9, 25],
-        [2007, 10,  2],
-        [2007, 10,  9],
-        [2007, 10, 18],
-    ]
-    i = tt.insert()
-    print tt.name
-    for test, max, date in zip([x for x in db_list[0][6:]],
-                               [y for y in db_list[1][6:]],
-                               dates):
-        print 'insert %s %s %s' % (test, max, date)
-        y = datetime.date(*date)
-        i.execute(test_id=test, max_marks=max, date=y)
-
-
-def populate_results(meta, db_list):
-    rt = meta.tables['results']
-    i = rt.insert()
-    print rt.name
-    tnames = db_list[0][6:]
-    for x in db_list[2:]:
-        id = x[0]
-        for t, y in zip (tnames, x[6:]):
-            if 1:
-                print 'insert  %s %s %s' % (id, t, y)
-                i.execute(id=id, test_id=t, marks=y)
-            else:
-                print 'skipped %s %s' % (id, t)
-
 def insert_results(engine, csv_file, force=False):
     list = read_csv_list(csv_file)
     # Compiling test entry to insert test into tests table
@@ -416,6 +383,8 @@ def get_class_list(meta):
 def print_results(meta):
     ids = []
     for x in get_class_list(meta):
+        if x.program == 'PROF' or x.program == 'TA':
+            continue
         name = '%s, %s' % (x.surname, x.given_names)
         print '%s  %-22s' % (x.id, name),
         # print get_marks(meta, x.id)
