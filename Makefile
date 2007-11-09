@@ -1,40 +1,54 @@
-INSTALL_DIR=/var/local/course
-DB_PATH=/var/tmp
-DB_FILE=math0010.sqlite
-LIB_DIR=/usr/local/lib/python2.5/site-packages
-SCRIPTS_DIR=/usr/local/bin
+INSTALL_DIR		= /var/local/course
+TEST_DIR		= /var/tmp/course
+LIB_DIR			= /usr/local/lib/python2.5/site-packages
+SCRIPTS_DIR		= /usr/local/bin
+EGGINS_LOG		= /tmp/course-eggins.log
+
+DB_DIR			= ${INSTALL_DIR}/db
+DOWNLOAD_DIR	= ${INSTALL_DIR}/downloads
+MESSAGE_DIR		= ${INSTALL_DIR}/messages
+ETC_DIR			= ${INSTALL_DIR}/etc
 
 usage:
 	@echo 
-	@echo Possible targets: install, uninstall, purge, clean, distclean
+	@echo Main targets: install, clean
+	@echo
+	@echo Subtargets: egg-install egg-info mk-dirs etc-install copy-files
 	@echo
 
-install:
-	python setup.py bdist_egg
-	easy_install -d ${LIB_DIR} -s ${SCRIPTS_DIR} --record installed-files.log `python setup.py --course-dist-egg-path` 
-	mkdir -p ${INSTALL_DIR}/db
-	mkdir -p ${INSTALL_DIR}/private/messages
-	mkdir -p ${INSTALL_DIR}/private/downloads
-	mkdir -p ${INSTALL_DIR}/data/paster
-#	cp -a  ${DB_PATH}/${DB_FILE} ${INSTALL_DIR}/db/${DB_FILE}
-	cp -a etc/production.ini ${INSTALL_DIR}/
-	cp -a public ${INSTALL_DIR}/public
-	cp -a templates ${INSTALL_DIR}/templates
+install: mk-dirs etc-install copy-files egg-install
 
-uninstall: installed-files.log
-	python setup.py --course-egg-path >tmp.path_to_egg
-	echo $$TMP_ENV_VAR 
-	python setup.py --course-egg-path
-	easy_install -m `python setup.py --course-dist-egg-path` 
-	xargs <installed-files.log  rm -f
-	xargs <tmp.path_to_egg  rm -fr
-	rm -f tmp.path_to_egg
+egg-install:
+	easy_install -d ${LIB_DIR} -s ${SCRIPTS_DIR} --record ${EGGINS_LOG} .
+	chmod -R a+rX ${LIB_DIR} ${SCRIPTS_DIR}/course-util
+# easy_install -d ${LIB_DIR} -s ${SCRIPTS_DIR} --record installed-files.log `python setup.py --course-dist-egg-path` 
 
-purge: uninstall
-	rm -fr ${INSTALL_DIR}
+egg-info:
+	python setup.py egg_info
+
+mk-dirs:
+	mkdir -p ${DB_DIR}
+	mkdir -p ${DOWNLOAD_DIR}
+	mkdir -p ${MESSAGE_DIR}
+	mkdir -p ${ETC_DIR}
+
+etc-install: ${INSTALL_DIR}/etc/production.ini \
+             ${INSTALL_DIR}/etc/wsgi-starter.py
+${INSTALL_DIR}/etc/production.ini: etc/production.ini
+	install -m 644 etc/production.ini ${INSTALL_DIR}/etc
+${INSTALL_DIR}/etc/wsgi-starter.py: etc/wsgi-starter.py
+	install -m 644 etc/wsgi-starter.py ${INSTALL_DIR}/etc
+
+# coud we have these inside the egg?
+copy-files:
+	cp -a public ${INSTALL_DIR}
+	chmod -R a+rX ${INSTALL_DIR}/public
+	cp -a templates ${INSTALL_DIR}
+	chmod -R a+rX ${INSTALL_DIR}/templates
 
 clean:
-	rm -fr dist
+	rm -fr build
+	rm -fr temp
+	rm -fr course.egg-info/
 
 distclean: clean
-	rm -f installed-files.log
