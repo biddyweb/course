@@ -1,6 +1,7 @@
 # use glob syntax.
 syntax: glob
 
+MANIFEST.in
 # vim swap files
 *.swp
 # backup & tmp/* files
