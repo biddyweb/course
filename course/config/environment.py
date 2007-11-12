@@ -16,8 +16,8 @@ def load_environment(global_conf, app_conf):
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     paths = dict(root=root,
                  controllers=os.path.join(root, 'controllers'),
-                 static_files=os.path.join(app_conf['static_files']),
-                 templates=[os.path.join(app_conf['mako_templates'])])
+                 static_files=os.path.join(root, 'public'),
+                 templates=[os.path.join(root, 'templates')])
 
     # Initialize config with the basic options
     config.init_app(global_conf, app_conf, package='course',
