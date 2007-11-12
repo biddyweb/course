@@ -9,7 +9,7 @@ DOWNLOAD_DIR	= ${INSTALL_DIR}/downloads
 MESSAGE_DIR		= ${INSTALL_DIR}/messages
 RUN_DIR			= ${INSTALL_DIR}/run
 
-EXEC_USER		= course 
+EXEC_USER		= course
 EXEC_GROUP		= course
 
 usage:
@@ -19,7 +19,7 @@ usage:
 	@echo Subtargets: egg-install egg-info mk-dirs etc-install copy-files
 	@echo
 
-install: mk-dirs etc-install copy-files egg-install chg-perm
+install: mk-dirs etc-install egg-install chg-perm
 
 test-install: mk-dirs ${INSTALL_DIR}/wsgi-starter.py
 
@@ -38,18 +38,12 @@ mk-dirs:
 	rm -fr ${RUN_DIR}
 	mkdir -p ${RUN_DIR}
 
-
 etc-install: ${INSTALL_DIR}/production.ini \
              ${INSTALL_DIR}/wsgi-starter.py
 ${INSTALL_DIR}/production.ini: etc/production.ini
 	install -m 644 etc/production.ini ${INSTALL_DIR}
 ${INSTALL_DIR}/wsgi-starter.py: etc/wsgi-starter.py
 	install -m 644 etc/wsgi-starter.py ${INSTALL_DIR}
-
-# coud we have these inside the egg?
-copy-files:
-	cp -a public ${INSTALL_DIR}
-	cp -a templates ${INSTALL_DIR}
 
 chg-perm:
 	chown -R ${EXEC_USER}:${EXEC_GROUP} ${INSTALL_DIR}
