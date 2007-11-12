@@ -1,13 +1,16 @@
 INSTALL_DIR		= /var/local/course
 
-LIB_DIR			= /usr/local/lib/python2.5/site-packages
-SCRIPTS_DIR		= /usr/local/bin
+LIB_DIR			= $(INSTALL_DIR)/pylib
+SCRIPTS_DIR		= $(INSTALL_DIR)/bin
 EGGINS_LOG		= /tmp/course-eggins.log
 
 DB_DIR			= ${INSTALL_DIR}/db
 DOWNLOAD_DIR	= ${INSTALL_DIR}/downloads
 MESSAGE_DIR		= ${INSTALL_DIR}/messages
 RUN_DIR			= ${INSTALL_DIR}/run
+
+EXEC_USER		= course 
+EXEC_GROUP		= course
 
 usage:
 	@echo 
@@ -16,25 +19,24 @@ usage:
 	@echo Subtargets: egg-install egg-info mk-dirs etc-install copy-files
 	@echo
 
-install: mk-dirs etc-install copy-files egg-install
+install: mk-dirs etc-install copy-files egg-install chg-perm
 
 test-install: mk-dirs ${INSTALL_DIR}/wsgi-starter.py
 
 egg-install:
-	easy_install -d ${LIB_DIR} -s ${SCRIPTS_DIR} --record ${EGGINS_LOG} .
-	chmod -R a+rX ${LIB_DIR} ${SCRIPTS_DIR}/course-util
+	export PYTHONPATH=${LIB_DIR}; easy_install -d ${LIB_DIR} -s ${SCRIPTS_DIR} --record ${EGGINS_LOG} .
 
 egg-info:
 	python setup.py egg_info
 
 mk-dirs:
+	mkdir -p ${LIB_DIR}
+	mkdir -p ${SCRIPTS_DIR}
 	mkdir -p ${DB_DIR}
 	mkdir -p ${DOWNLOAD_DIR}
 	mkdir -p ${MESSAGE_DIR}
 	rm -fr ${RUN_DIR}
 	mkdir -p ${RUN_DIR}
-	chmod -R a+rX ${INSTALL_DIR}
-	chown www-data:www-data ${RUN_DIR}
 
 
 etc-install: ${INSTALL_DIR}/production.ini \
@@ -47,9 +49,10 @@ ${INSTALL_DIR}/wsgi-starter.py: etc/wsgi-starter.py
 # coud we have these inside the egg?
 copy-files:
 	cp -a public ${INSTALL_DIR}
-	chmod -R a+rX ${INSTALL_DIR}/public
 	cp -a templates ${INSTALL_DIR}
-	chmod -R a+rX ${INSTALL_DIR}/templates
+
+chg-perm:
+	chown -R ${EXEC_USER}:${EXEC_GROUP} ${INSTALL_DIR}
 
 clean:
 	rm -fr build
