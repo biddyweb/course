@@ -46,7 +46,8 @@ ${INSTALL_DIR}/wsgi-starter.py: etc/wsgi-starter.py
 	install -m 644 etc/wsgi-starter.py ${INSTALL_DIR}
 
 chg-perm:
-	chown -R ${EXEC_USER}:${EXEC_GROUP} ${INSTALL_DIR}
+	chmod -R a+rX ${INSTALL_DIR}
+	chown -R ${EXEC_USER}:${EXEC_GROUP} ${RUN_DIR}
 
 clean:
 	rm -fr build
