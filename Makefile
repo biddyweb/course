@@ -9,6 +9,8 @@ DOWNLOAD_DIR	= ${INSTALL_DIR}/downloads
 MESSAGE_DIR		= ${INSTALL_DIR}/messages
 RUN_DIR			= ${INSTALL_DIR}/run
 
+UTIL_SCRIPT_DIR = /usr/local/bin
+
 EXEC_USER		= course
 EXEC_GROUP		= course
 
@@ -16,10 +18,10 @@ usage:
 	@echo 
 	@echo Main targets: install, clean
 	@echo
-	@echo Subtargets: egg-install egg-info mk-dirs etc-install copy-files
+	@echo Subtargets: egg-install egg-info mk-dirs etc-install util-install copy-files
 	@echo
 
-install: mk-dirs etc-install egg-install chg-perm
+install: mk-dirs etc-install egg-install util-install chg-perm
 
 test-install: mk-dirs ${INSTALL_DIR}/wsgi-starter.py
 
@@ -44,6 +46,10 @@ ${INSTALL_DIR}/production.ini: etc/production.ini
 	install -m 644 etc/production.ini ${INSTALL_DIR}
 ${INSTALL_DIR}/wsgi-starter.py: etc/wsgi-starter.py
 	install -m 644 etc/wsgi-starter.py ${INSTALL_DIR}
+
+util-install: ${UTIL_SCRIPT_DIR}/course-util 
+${UTIL_SCRIPT_DIR}/course-util: utils/course-util 
+	install -m 755 utils/course-util ${UTIL_SCRIPT_DIR}/course-util 
 
 chg-perm:
 	chmod -R a+rX ${INSTALL_DIR}

@@ -23,7 +23,6 @@ def course_dist_egg():
         if x in p: return 'dist/'+p
     return ''
 
-
 if len(sys.argv) > 1 and sys.argv[1] == '--course-egg-path':
     print course_egg_path()
     raise SystemExit(0)
@@ -39,12 +38,15 @@ setup(
     #author='',
     #author_email='',
     #url='',
-    scripts = [ 'utils/course-util' ],
     install_requires=["Pylons>=0.9.6.1"],
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
     test_suite='nose.collector',
-    package_data={'course': ['i18n/*/LC_MESSAGES/*.mo']},
+    package_data={
+    #   'course': ['i18n/*/LC_MESSAGES/*.mo']
+        'course': ['public/graphics/*', 
+                   'templates/*.make', 'templates/*/*.make'], 
+    },
     #message_extractors = {'course': [
     #        ('**.py', 'python', None),
     #        ('templates/**.mako', 'mako', None),
