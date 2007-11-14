@@ -178,30 +178,43 @@ The apache config:
 
 # production site
 
-    WSGIDaemonProcess batman.cs.dal.ca user=course group=course
+# Option 1
 
+    WSGIDaemonProcess batman.cs.dal.ca user=course group=course
+    WSGIProcessGroup batman.cs.dal.ca
     WSGIScriptAlias /math0010 /var/local/course/wsgi-starter.py
 
-    <Directory "/var/local/course">
-        AllowOverride None
-        Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
-        Order deny,allow
-        # Allow from 127.0.0.0/255.0.0.0 ::1/128
-        Allow from all
-    </Directory>
+## Option 2
+#    WSGIDaemonProcess math0010 user=course group=course
+#    SetEnv PROCESS_GROUP default
+#    WSGIProcessGroup %{ENV:PROCESS_GROUP}
+#    Alias /math0010 /var/local/course/math0010.py
+#    <Directory /var/local/course>
+#        Options ExecCGI
+#        Order deny,allow
+#        # Allow from 127.0.0.0/255.0.0.0 ::1/128
+#        Allow from all
+#        AddHandler wsgi-script .wsgi
+#        WSGIRestrictProcess math0010
+#        SetEnv PROCESS_GROUP math0010
+#    </Directory>
 
 # testing site
 
+## Option 1 to use w/option 1 above
 #    wsgiscriptalias /testcourse /var/tmp/course/wsgi-starter.py
 #
-#    <directory "/var/tmp/course">
-#        allowoverride none
-#        options execcgi -multiviews +symlinksifownermatch
-#        order deny,allow
-#        allow from 127.0.0.0/255.0.0.0 ::1/128
-#        # allow from all
+## Option 2 to use w/option 2 above
+#    Alias /testcourse /var/local/course/math0010.py
+#    <Directory /var/local/course>
+#        Options ExecCGI
+#        Order deny,allow
+#        # Allow from 127.0.0.0/255.0.0.0 ::1/128
+#        Allow from all
+#        AddHandler wsgi-script .wsgi
+#        WSGIRestrictProcess math0010
+#        SetEnv PROCESS_GROUP math0010
 #    </Directory>
 
 The /var/local/course/run for cache and session stuff should be owned by
-www-data:www-data The application itself runs as course:course owned
-thread of apache.  whatever that means - it does not work as expected.
+course:course 
