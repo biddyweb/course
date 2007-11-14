@@ -45,7 +45,7 @@ setup(
     package_data={
     #   'course': ['i18n/*/LC_MESSAGES/*.mo']
         'course': ['public/graphics/*', 
-                   'templates/*.make', 'templates/*/*.make'], 
+                   'templates/*.mako', 'templates/*/*.mako'], 
     },
     #message_extractors = {'course': [
     #        ('**.py', 'python', None),
