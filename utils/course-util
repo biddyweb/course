@@ -152,6 +152,7 @@ def populate_students(meta, db_list):
     i = st.insert()
     print st.name
     for x in db_list[2:]:
+        print x[:6]
         id, surname, given_names, email, program, major = x[:6]
         print 'insert %s %s' % (id, surname)
         i.execute(id=id, surname=surname, given_names=given_names,
@@ -399,7 +400,8 @@ def print_results(meta):
 
 def print_email(meta):
     for x in get_class_list(meta):
-        print '%s, %s <%s>' % (x.surname, x.given_names, x.email)
+        # RFC 822 compliant email address
+        print '"%s, %s" <%s>' % (x.surname, x.given_names, x.email)
 
 
 ###  CSV utilities  -----------------------------------------------------------
