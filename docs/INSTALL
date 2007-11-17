@@ -29,16 +29,42 @@ A few files will be created in the unzipped distribution dir, including
 you plan to uninstall this package. This file contains the paths to all
 the files that were installed via easy_install script.
 
-To change the destination directories or the default src location of the
-sqlite database you will have to modify these paths in the Makefile
-found in the root of the unzipped destination directory. Same directory
-where make install was run.
+To change the destination directories (i.e. the deployment directory)
+you will need to modify the relative paths in the "Makefile" found in
+the root of the unzipped destination directory. Same directory where
+make install should be run. The following is a description of the
+variables used within the makefile:
+
+INSTALL_DIR     - Destination directory (or Deployment directory)
+
+LIB_DIR         - Location of the python eggs, if this value must
+                  correspod to the value in the wsgi-starter.py if
+                  mod-wsgi is to be used.
+SCRIPTS_DIR     - Directory to install web-course related scripts
+EGGINS_LOG      - Directory to log files installed by easy-install
+
+DB_DIR          - Directory to create for placement of the DB, should
+                  correspond to the value set for sqlalchemy.url in 
+                  production.ini
+DOWNLOAD_DIR    - Directory containing all downloadable files, should
+                  correspond to values in production.ini
+MESSAGE_DIR     - Directory containing messages to be output to the
+                  course users. Should correspond to value in
+                  production.ini
+RUN_DIR         - Run directory to be used for course related cache.
+                  The make process will change the owner and group of
+                  this directory to the values set in EXEC_USER and
+                  EXEC_GROUP. Run dir should correspond to the value set
+                  in production.ini
+UTIL_SCRIPT_DIR - Destination of the course utilities
+EXEC_USER       - User that will be running the course web application
+EXEC_GROUP      - Group of the user mentioned above
 
 === How to use the installed directories & files ===
 
 In the destination directory you will find the following directories and
-files. Along with each listing is a description of the files located
-within.
+files if the standard makefile was used. Along with each listing is a 
+description of the files located within.
     
  db/            - Initially empty. Directory to place the student
                   database in
