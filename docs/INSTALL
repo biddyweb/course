@@ -13,15 +13,12 @@ previously zipped copy of the repo and unzip it.
 Run the following commands:
 
     cd dir-containing-dist/
-    python setup.py egg_info
     make install
 
 This will install the following:
 
   - The required folders from the unzipped dist directory will be
     installed in /var/local/course/
-  - The sqlite db to be used by the course package will be copied over
-    from /var/tmp/math0010.sqlite
   - The course-egg will be installed as a py egg in
     /usr/local/lib/python2.5/site-packages
   - Scripts related to the course utility would be installed in
@@ -37,45 +34,30 @@ sqlite database you will have to modify these paths in the Makefile
 found in the root of the unzipped destination directory. Same directory
 where make install was run.
 
-=== How to use the installed directories ===
+=== How to use the installed directories & files ===
 
-In the destination directory you will find the following directories.
-Along with each directory is a description of the files located within.
-
- templates/     - The templates rendered by the course application.
-                  .mako files directly in this directory include a base
-                  template for all files along with two error templates.
-    math0010/   - The templates that render the specific course pages.
-
- messages/       - All files here are to be concatenated in alphabetical
-                  order and displayed to the course students at the top
-                  of there page.
- downloads/      - All files listed here are downloadable by logged in
-                  students and will be listed in their login page.
- public/         - This is the applications document root. Directories
-                  created here can be accessed without login. However,
-                  make sure to not create directory names that map ontop
-                  of other urls in the system as these will take
-                  precedence and mask the standard ones.
-    graphics/   - A directory containing some graphics used by the
-                  course application.
-
- run/           - for cache and session stuff 
-
-== Un-Install Instructions ==
-
-If you have not deleted 'installed-files.log' you will be able to
-uninstall the course package. To uninstall the dist egg and all files
-listed in 'installed-files.log' do the following:
+In the destination directory you will find the following directories and
+files. Along with each listing is a description of the files located
+within.
     
-    cd dir-containing-dist/
-    make uninstall
+ db/            - Initially empty. Directory to place the student
+                  database in
+ pylib/         - Where the course egg and all needed eggs are installed
+ bin/           - Any script related to the web app are installed here
+ messages/      - All files here are to be concatenated in alphabetical
+                  order and displayed to the course students at the top
+                  of there page
+ downloads/     - All files listed here are downloadable by logged in
+                  students and will be listed in their login page.
+ run/           - for cache and session stuff 
+ course         - shell script used to start and stop course
+ production.ini - main course config file
+ wsgi-starter.py - Starter script used with mod-wsgi 
 
-If you want to purge all files relating to course including the ones
-installed in /var/local/course/ do the following instead.
+You should install the database into destination-dir/db (by default
+/var/local/course/db) and modify the production.ini to suite your
+database name by changing the value of sqlalchemy.url.
 
-    cd dir-containing-dist/
-    make uninstall
 
 == Running the application ==
 
@@ -115,8 +97,8 @@ the following commands as root or user with sufficient privileges to
 modify /etc/init.d
 
     cd distribution-dir
-    cp course-init.sh /etc/init.d/course
-    update-rc.d course install
+    install course /etc/init.d/course
+    update-rc.d course defaults
 
 If you want to remove the script from startup
     
