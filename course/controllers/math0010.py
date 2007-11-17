@@ -1,11 +1,17 @@
 import logging
+import logging.handlers
 import os.path
 
 from course.lib.base import *
 from course import model
 import paste.fileapp
 
+logging.basicConfig(level=logging.INFO,
+                    format='%(module)s[%(process)d]:%(message)s')
 log = logging.getLogger(__name__)
+log.addHandler( logging.handlers.SysLogHandler('/dev/log',
+                logging.handlers.SysLogHandler.LOG_USER))
+
 
 class Math0010Controller(BaseController):
 
@@ -29,10 +35,7 @@ class Math0010Controller(BaseController):
         else:
             c.error_msg = 'No login id given <br/> Go to the main page'\
                           ' to login.'
-            log.info(
-                'Login attempted without login info.'
-                ,extra = {'clientip': ip_address}
-            )
+            log.info('[LOGIN]:[%s]::No Login ID Given.'%ip_address)
             return render('/error.mako')
         
 
@@ -40,8 +43,8 @@ class Math0010Controller(BaseController):
         if students == []:
             c.error_msg = 'No Student with ID=%s <br/> Go to main page to'\
                           ' login'%id
-            log_message = 'Student ID %s not found in DB'%id
-            log.info(log_message, extra={'clientip': ip_address})
+            log.info('[LOGIN]:[%s]:[%s]:Student ID Not Found.'\
+                     %(ip_address, id))
             return render('/error.mako')
         else:
             session['login_id'] = id
@@ -50,42 +53,42 @@ class Math0010Controller(BaseController):
         
         if model.course_db.isSudo(model.meta, id):
             if log_flag:
-                log_message = 'Login as teacher by %(surname)s,'\
-                              ' %(given_names)s (%(id)s)'%students[0]
-                log.info(log_message, extra={'clientip': ip_address})
+                log_message = '[%(id)s] %(surname)s,%(given_names)s:'\
+                              'Teacher Logged in.'%students[0]
+                log_message = '[LOGIN]:[%s]:%s'%(ip_address, log_message)
+                log.info(log_message)
             redirect_to(action='teacher_area') 
         else:
             if log_flag:
-                log_message = 'Login by %(surname)s, %(given_names)s'\
-                              ' (%(id)s)'%students[0] 
-                log.info(log_message, extra={'clientip': ip_address})
+                log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
+                              'Student Logged in.'%students[0]
+                log.info('[LOGIN]:[%s]:%s'%(ip_address, log_message))
             redirect_to(action='student_area')
 
     def student_area(self):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log_message = 'Student area access using no login_id'
-            log.info(log_message, extra={'clientip': ip_address})
+            log.info('[STUDENT-AREA]:[%s]::NO Student ID Found!'\
+                     %(ip_address))
             return render('/nologin.mako')
         c.student_info = session['login_info']
         c.student_marks = model.course_db.get_results( 
             model.meta, session['login_id'])
-        c.message = h.get_msg(g.msg_dir) 
+        c.message = h.get_msg(g.msg_dir).strip() 
         c.files = h.get_fnames(g.downloads_dir)
         return render('/math0010/student.mako')
 
     def teacher_area(self):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log_message = 'Teacher area access attempt with no login_id'
-            log.info(log_message, extra={'clientip':  ip_address})
+            log.info('[TEACHER-AREA]:[%s]::NO ID Found!'\
+                     %(ip_address))
             return render('/nologin.mako')
         if not model.course_db.isSudo(model.meta, session['login_id']):
             c.error_msg = 'Invalid Login ID'
-            log_message = 'Illegal access attempt of teacher area by'\
-                          ' %(surname)s, %(given_names)s'\
-                          ' (%(id)s)'%session['login_info']
-            log.info(log_message, extra={'clientip': ip_address})
+            log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
+                          'NOT A Teacher!'%session['login_info']
+            log.info('[TEACHER-AREA]:[%s]:%s'%(ip_address,log_message))
             return render('/error.mako')
         students = model.course_db.get_class_list(model.meta)
         c.all_marks = []
@@ -93,14 +96,20 @@ class Math0010Controller(BaseController):
             row = [x]
             row += model.course_db.get_results(model.meta, x.id)
             c.all_marks.append(row)
+        c.message = h.get_msg(g.msg_dir).strip() 
+        c.files = h.get_fnames(g.downloads_dir)
         c.teacher_info = session['login_info']
         return render('/math0010/teacher.mako')
 
     def logout(self):
         ip_address = request.environ['REMOTE_ADDR']
-        log_message = 'Logout by %(surname)s, %(given_names)s'\
-                      ' (%(id)s)'%session['login_info'] 
-        log.info(log_message, extra={'clientip': ip_address})
+        if 'login_info' in session:
+            log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
+                          'Logout.'%session['login_info']
+        else:
+            log_message = ':Logout requested but not logged in.'\
+                          %session['login_info']
+        log.info('[LOGOUT]:[%s]:%s'%(ip_address,log_message))
         del session['login_id']  
         del session['login_info']  
         session.save()
@@ -109,30 +118,28 @@ class Math0010Controller(BaseController):
     def downloads(self, id=''):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log_message = 'Download "%s" requested without login'%id
-            log.info(log_message, extra={'clientip': ip_address})
+            log.info( '[DOWNLOADS]:[%s]::File "%s" requested '\
+                      'without login'%(ip_address, id))
             return render('/nologin.mako')
         elif id == '':
-            log_message = 'Listing of download area requested by'\
-                          ' %(surname)s, %(given_names)s (%(id)s)'%(
-                          session['login_info'])
-            log.info(log_message, extra={'clientip': ip_address})
+            log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
+                          'Attempted list of downloads.'\
+                          %session['login_info']
+            log.info('[DOWNLOADS]:[%s]:%s'%(ip_address, log_message))
             c.error_msg = 'Invalid use of download area'
             return render('/error.mako')
         elif id not in h.get_fnames(g.downloads_dir):
-            log_message = 'File %s requested by'%id
-            log_message2 = ' %(surname)s, %(given_names)s (%(id)s)'\
-                          ' but unavailable'%( session['login_info'])
-            log.info("%s%s"%(log_message, log_message2),
-                extra={'clientip': ip_address})
+            log_message = '[%(id)s] %(surname)s, %(given_names)s'\
+                          %session['login_info']
+            log.info('[DOWNLOADS]:[%s]:%s:"%s" requested but '\
+                     'unavailable.'%(ip_address, log_message, id))
             c.error_msg = 'Invalid use of download area'
             return render('/error.mako')
         else:
-            log_message = 'File %s downloaded by'%id
-            log_message2 = ' %(surname)s, %(given_names)s (%(id)s)'\
-                          ' but unavailable'%( session['login_info'])
-            log.info("%s%s"%(log_message, log_message2),
-                extra={'clientip': ip_address})
+            log_message = '[%(id)s] %(surname)s, %(given_names)s'\
+                          %session['login_info']
+            log.info('[DOWNLOADS]:[%s]:%s:"%s" downloaded.'\
+                     %(ip_address, log_message, id))
             return self._serve_file(os.path.join(g.downloads_dir, id))
 
     def _serve_file(self, path):
