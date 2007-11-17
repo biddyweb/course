@@ -25,7 +25,7 @@
       th.specalt {
           border-left: 1px solid #C1DAD7;
           border-top: 0;
-          background: #f5fafa
+          background: #f5fafa;
           url(${h.url_for('/graphics/bullet2.gif')}) no-repeat;
       }
       td {
