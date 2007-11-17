@@ -12,18 +12,20 @@
         nobr { white-space: nowrap; }
         .smalltext {font-size: small;} 
         .centertext {text-align: center;} 
+        blockquote pre{font-size: x-large; background: #CAE8EA;}
     </style>
 </%def>
 
-<div style="float: right;">
-<a href="${h.url_for('math0010', action='logout')}">logout</a>
-&nbsp;
-<a href="${h.url_for('math0010')}">back to main page</a>
-</div>
 
 <h1>Teacher Area</h1>
 <br/>
-
+% if c.message:
+<blockquote>
+<pre>
+${c.message}
+</pre>
+</blockquote>
+% endif
 <div>
   <h3> Students' Details </h3>
 <table>
@@ -71,3 +73,16 @@ class_td = ['', 'alt']
 </table>
 </div>
 
+<h3>Downloads</h3>
+    <span> <a href="${h.url_for('/downloads/%s'%x)}">${c.files[0]}</a> </span>
+% for x in c.files[1:]:
+    ,&nbsp;<span> <a href="${h.url_for('/downloads/%s'%x)}">${x}</a> </span>
+% endfor
+
+
+</div>
+<br/>
+<br/>
+<a href="${h.url_for('math0010')}">back to main page</a>
+&nbsp;
+<a href="${h.url_for('math0010', action='logout')}">logout</a>
