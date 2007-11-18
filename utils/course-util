@@ -505,6 +505,7 @@ Available commands:
  print      print various plain text tables/lists from the db
  dump       dump various csv lists from the db
  upload     upload test results
+ cancel     cancel students from class list
 
 Type "course-util --help command" to get particular details.
 '''
