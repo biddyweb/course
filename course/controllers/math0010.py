@@ -142,6 +142,33 @@ class Math0010Controller(BaseController):
                      %(ip_address, log_message, id))
             return self._serve_file(os.path.join(g.downloads_dir, id))
 
+    def synthetic_division(self):
+#        ip_address = request.environ['REMOTE_ADDR']
+#        if 'login_id' not in session:
+#            log.info('[synthetic_division]:[%s]::User not logged in.'\
+#                     %(ip_address))
+#            return render('/nologin.mako')
+        return render('/math0010/synthetic.mako')
+
+    def synthetic_calc(self):
+#        ip_address = request.environ['REMOTE_ADDR']
+#        if 'login_id' not in session:
+#            log.info('[synthetic_division]:[%s]::User not logged in.'\
+#                     %(ip_address))
+#            return render('/nologin.mako')
+        if 'degree' in request.params and request.params['degree'] != '':
+            cs = []
+            for x in range(int(request.params['degree'])+1):
+                cs.append(request.params['c%s'%x])
+        else:
+            c.error_msg = 'Invalid parameters to synthetic calculator.'
+            log.info('[synthetic_division]:[%s]::'%(ip_address))
+            return render('/error.mako')
+        c.msg = ", ".join(cs)
+        return render('/math0010/synthetic_res.mako')
+
+
+
     def _serve_file(self, path):
         """ Private Function
         Call Paste's FileApp (a WSGI application) to serve the file
