@@ -72,17 +72,11 @@ def get_class_list(meta):
     '''
     st = meta.tables['students']
     # s = sa.select([st.c.id, st.c.surname, st.c.given_names])
-    s = st.select()
+    s = st.select(
+        sa.sql.and_(st.c.major != 'PROF', st.c.major != 'CANCELLED'))
     s = s.order_by(st.c.surname)
     rs = s.execute()
-    lrs = list(rs)
-    x = 0
-    while x < len(lrs):
-        if checkProf(lrs[x]):
-            del lrs[x]
-            continue
-        x+=1
-    return lrs
+    return list(rs)
 
 ### Other Functions -----------------------------------------------------------
 def isSudo(meta, id):
@@ -97,7 +91,6 @@ def checkProf(student):
     if student.major == 'PROF' and student.program == 'PROF':
         return True
     return False
-
 
 #  main just for testing the module  ------------------------------------------`
 
