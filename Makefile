@@ -9,7 +9,8 @@ DOWNLOAD_DIR	= ${INSTALL_DIR}/downloads
 MESSAGE_DIR		= ${INSTALL_DIR}/messages
 RUN_DIR			= ${INSTALL_DIR}/run
 
-UTIL_SCRIPT_DIR = /usr/local/bin
+# UTIL_SCRIPT_DIR = /usr/local/bin
+UTIL_SCRIPT_DIR = ${HOME}/bin/script
 
 EXEC_USER		= course
 EXEC_GROUP		= course
