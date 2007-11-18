@@ -347,16 +347,31 @@ def update_student(connection, student_info):
     ).rowcount):
         raise Exception('No Student with ID %(id)s'%student_info)
 
-def cancel_student(connection, student_id):
+def cancel_students(connection, csv_file="", student_list=[]):
     '''
-    Cancel the student with the given id.
+    Cancel the student with the id's specified in student list or in the
+    first column of a csv file. 
+
+    If both supplied csv_file take precedence.
+    
+    Returns a tuple compsed of (successful_changes, error_msgs)
     '''
     student_info = {
-        'id'        : student_id,
         'program'   : 'CANCELLED',
         'major'     : 'CANCELLED',
     }
-    update_student(connection, student_info)
+    if csv_file:
+        student_list = [x[0] for x in read_csv_list(csv_file)]
+    err = []
+    suc = []
+    for x in student_list: 
+        student_info['id'] = x
+        try:
+            update_student(connection, student_info)
+            suc.append("%s successfully cancelled"%x)
+        except Exception, inst:
+            err.append(str(inst))
+    return(suc,err)
 
 #  queries  -------------------------------------------------------------------
 
@@ -548,7 +563,7 @@ Additionally the following argument can be used:
 ''',
 
 'print' : '''
-    course-util results [option] db-file
+    course-util print [option] db-file
 
 Print various plain text tables/lists from the db.
 
@@ -559,10 +574,19 @@ Exactly one of the following options must be given:
     -m --email      email list
 ''',
 'cancel': '''
-    course-util cancel db-file student_id
+    course-util cancel [option] db-file csv-file | student_id [student_id ...]
 
 Cancel the student with the given student_id in database given by
 db-file.
+    
+    -C --csv    Cancel students listed in the csv-file
+
+The file can be a standard text file with a student ID per line,
+optionally it can be a csv file. If a csv file is supplied the first
+column will be taken as the student ID to cancel.
+
+If the -C switch is issued the first argument after db-file will be
+taken as a path to a csv file.
 ''',
 
 }
@@ -590,6 +614,9 @@ def main():
         )
     opt_parser.add_option('-F', '--force', 
         action='store_true', dest='force_flag', default=False,
+        )
+    opt_parser.add_option('-C', '--csv', 
+        action='store_true', dest='csv_flag', default=False,
         )
 
     (options, args) = opt_parser.parse_args()
@@ -665,11 +692,22 @@ def main():
             opt_parser.error('missing or invalid option')
 
     elif cmd == 'cancel':
-        if len(args) != 3:
+        if len(args) < 3:
             opt_parser.error('incorrect number of arguments')
         engine = sa.create_engine('sqlite:///%s' % args[1],
             strategy='threadlocal')
-        cancel_student(engine, args[2])
+        if options.csv_flag:
+            success_msgs, error_msgs = \
+                cancel_students(engine, csv_file = args[2])
+        else:
+            success_msgs, error_msgs = \
+                cancel_students(engine, student_list = args[2:])
+        if success_msgs:
+            print >>sys.stderr, "The following changes were done:"
+            print >>sys.stderr, "  %s"%"\n  ".join(success_msgs)
+        if error_msgs:
+            print >>sys.stderr, "The following errors have occurred:"
+            print >>sys.stderr, "  %s"%"\n  ".join(error_msgs)
 
 ###
 main()
