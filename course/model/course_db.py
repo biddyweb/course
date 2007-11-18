@@ -68,7 +68,7 @@ def get_student(meta, id):
 
 def get_class_list(meta):
     '''
-    return the full "students" table without prof.
+    return the full "students" table without prof or cancelled students.
     '''
     st = meta.tables['students']
     # s = sa.select([st.c.id, st.c.surname, st.c.given_names])
@@ -86,6 +86,19 @@ def isSudo(meta, id):
     rs = s.execute()
     student = rs.fetchone()
     return checkProf(student)
+
+def isCancelled(meta, id):
+    st = meta.tables['students']
+    s = st.select(whereclause=(id == st.c.id))
+    s = s.order_by(st.c.surname)
+    rs = s.execute()
+    student = rs.fetchone()
+    return checkCancel(student)
+
+def checkCancel(student):
+    if student.major == 'CANCELLED' and student.program == 'CANCELLED':
+        return True
+    return False
 
 def checkProf(student):
     if student.major == 'PROF' and student.program == 'PROF':

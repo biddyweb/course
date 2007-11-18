@@ -25,6 +25,9 @@ class Math0010Controller(BaseController):
         return render('/math0010/index.mako')
     
     def login(self):
+        '''
+        login page
+        '''
         ip_address = request.environ['REMOTE_ADDR']
         log_flag = True
         if 'id' in request.params and request.params['id'] != '':
@@ -35,16 +38,26 @@ class Math0010Controller(BaseController):
         else:
             c.error_msg = 'No login id given <br/> Go to the main page'\
                           ' to login.'
-            log.info('[LOGIN]:[%s]::No Login ID Given.'%ip_address)
+            log.info('[LOGIN]: [%s]: : No Login ID Given.'%ip_address)
             return render('/error.mako')
-        
 
         students = model.course_db.get_student(model.meta, id)
         if students == []:
             c.error_msg = 'No Student with ID=%s <br/> Go to main page to'\
                           ' login'%id
-            log.info('[LOGIN]:[%s]:[%s]:Student ID Not Found.'\
+            log.info('[LOGIN]: [%s]: [%s]: Student ID Not Found.'\
                      %(ip_address, id))
+            return render('/error.mako')
+        elif model.course_db.isCancelled(model.meta, id):
+            c.error_msg = \
+                'You are not registered for this course any more.<br/>'\
+                'If that is not correct, please contact your professor'\
+                ' or the administration.'
+            log_message = '[%(id)s] %(surname)s,%(given_names)s: '\
+                          'De-registered student attempted login.'\
+                          %students[0]
+            log_message = '[LOGIN]: [%s]: %s'%(ip_address, log_message)
+            log.info(log_message)
             return render('/error.mako')
         else:
             session['login_id'] = id
@@ -53,22 +66,22 @@ class Math0010Controller(BaseController):
         
         if model.course_db.isSudo(model.meta, id):
             if log_flag:
-                log_message = '[%(id)s] %(surname)s,%(given_names)s:'\
+                log_message = '[%(id)s] %(surname)s,%(given_names)s: '\
                               'Teacher Logged in.'%students[0]
-                log_message = '[LOGIN]:[%s]:%s'%(ip_address, log_message)
+                log_message = '[LOGIN]: [%s]: %s'%(ip_address, log_message)
                 log.info(log_message)
             redirect_to(action='teacher_area') 
         else:
             if log_flag:
-                log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
+                log_message = '[%(id)s] %(surname)s, %(given_names)s: '\
                               'Student Logged in.'%students[0]
-                log.info('[LOGIN]:[%s]:%s'%(ip_address, log_message))
+                log.info('[LOGIN]: [%s]: %s'%(ip_address, log_message))
             redirect_to(action='student_area')
 
     def student_area(self):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log.info('[STUDENT-AREA]:[%s]::NO Student ID Found!'\
+            log.info('[STUDENT-AREA]: [%s]: : NO Student ID Found!'\
                      %(ip_address))
             return render('/nologin.mako')
         c.student_info = session['login_info']
@@ -81,14 +94,14 @@ class Math0010Controller(BaseController):
     def teacher_area(self):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log.info('[TEACHER-AREA]:[%s]::NO ID Found!'\
+            log.info('[TEACHER-AREA]: [%s]: : NO ID Found!'\
                      %(ip_address))
             return render('/nologin.mako')
         if not model.course_db.isSudo(model.meta, session['login_id']):
             c.error_msg = 'Invalid Login ID'
-            log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
+            log_message = '[%(id)s] %(surname)s, %(given_names)s: '\
                           'NOT A Teacher!'%session['login_info']
-            log.info('[TEACHER-AREA]:[%s]:%s'%(ip_address,log_message))
+            log.info('[TEACHER-AREA]: [%s]: %s'%(ip_address,log_message))
             return render('/error.mako')
         students = model.course_db.get_class_list(model.meta)
         c.all_marks = []
@@ -107,9 +120,9 @@ class Math0010Controller(BaseController):
             log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
                           'Logout.'%session['login_info']
         else:
-            log_message = ':Logout requested but not logged in.'\
+            log_message = ': Logout requested but not logged in.'\
                           %session['login_info']
-        log.info('[LOGOUT]:[%s]:%s'%(ip_address,log_message))
+        log.info('[LOGOUT]: [%s]: %s'%(ip_address,log_message))
         del session['login_id']  
         del session['login_info']  
         session.save()
@@ -118,27 +131,27 @@ class Math0010Controller(BaseController):
     def downloads(self, id=''):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log.info( '[DOWNLOADS]:[%s]::File "%s" requested '\
+            log.info( '[DOWNLOADS]: [%s]: : File "%s" requested '\
                       'without login'%(ip_address, id))
             return render('/nologin.mako')
         elif id == '':
             log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
                           'Attempted list of downloads.'\
                           %session['login_info']
-            log.info('[DOWNLOADS]:[%s]:%s'%(ip_address, log_message))
+            log.info('[DOWNLOADS]: [%s]: %s'%(ip_address, log_message))
             c.error_msg = 'Invalid use of download area'
             return render('/error.mako')
         elif id not in h.get_fnames(g.downloads_dir):
             log_message = '[%(id)s] %(surname)s, %(given_names)s'\
                           %session['login_info']
-            log.info('[DOWNLOADS]:[%s]:%s:"%s" requested but '\
+            log.info('[DOWNLOADS]: [%s]: %s: "%s" requested but '\
                      'unavailable.'%(ip_address, log_message, id))
             c.error_msg = 'Invalid use of download area'
             return render('/error.mako')
         else:
             log_message = '[%(id)s] %(surname)s, %(given_names)s'\
                           %session['login_info']
-            log.info('[DOWNLOADS]:[%s]:%s:"%s" downloaded.'\
+            log.info('[DOWNLOADS]: [%s]: %s: "%s" downloaded.'\
                      %(ip_address, log_message, id))
             return self._serve_file(os.path.join(g.downloads_dir, id))
 
@@ -162,7 +175,7 @@ class Math0010Controller(BaseController):
                 cs.append(request.params['c%s'%x])
         else:
             c.error_msg = 'Invalid parameters to synthetic calculator.'
-            log.info('[synthetic_division]:[%s]::'%(ip_address))
+            log.info('[synthetic_division]: [%s]: : '%(ip_address))
             return render('/error.mako')
         c.msg = ", ".join(cs)
         return render('/math0010/synthetic_res.mako')
