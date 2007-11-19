@@ -422,11 +422,14 @@ def get_results(meta, id):
     return ys
  
 
-def get_class_list(meta):
+def get_class_list(meta, include_canceled=False):
     st = meta.tables['students']
     # s = sa.select([st.c.id, st.c.surname, st.c.given_names])
-    s = st.select(
-        sa.sql.and_(st.c.major != 'PROF', st.c.major != 'CANCELLED'))
+    if include_canceled:
+        query = sa.sql.and_(st.c.major != 'PROF')
+    else:
+        query = sa.sql.and_(st.c.major != 'PROF', st.c.major != 'CANCELLED')
+    s = st.select( query )
     s = s.order_by(st.c.surname)
     rs = s.execute()
     return list(rs)
@@ -434,9 +437,8 @@ def get_class_list(meta):
 
 ###  printing  ----------------------------------------------------------------
 
-def print_results(meta):
-    ids = []
-    for x in get_class_list(meta):
+def print_results(meta, include_canceled=False):
+    for x in get_class_list(meta, include_canceled):
         name = '%s, %s' % (x.surname, x.given_names)
         print '%s  %-22s' % (x.id, name),
         # print get_marks(meta, x.id)
@@ -449,10 +451,17 @@ def print_results(meta):
         print
 
 
-def print_email(meta):
-    for x in get_class_list(meta):
+def print_email(meta, include_canceled=False):
+    for x in get_class_list(meta, include_canceled):
         # RFC 822 compliant email address
         print '"%s, %s" <%s>' % (x.surname, x.given_names, x.email)
+
+
+def print_class_list(meta, include_canceled=False):
+    for x in get_class_list(meta, include_canceled):
+        name = '%s, %s' % (x.surname, x.given_names)
+        print '%s  %-25s %-28s %s, %s' % (x.id, name, x.email, x.program, x.major)
+        # print '%s,  %-25s' % (x.id, name)
 
 
 ###  CSV utilities  -----------------------------------------------------------
@@ -489,6 +498,8 @@ def print_csv_list(pylist):
 
 
 def fulldump(meta):
+    # this always dumps the whole contents of each table
+    # including canceled students
     st = meta.tables['students']
     tt = meta.tables['tests']
     rt = meta.tables['results']
@@ -507,7 +518,45 @@ def fulldump(meta):
     print_csv_list([Header_results])
     print_csv_list(rtrows)
 
+
+def dump_template_for_marker(meta):
+    # this never include canceled students
+    headers = [
+        ('ID number', 'Surname', 'Given name(s)'),
+        ('Maximum', '', ''),
+        ('Date', '', ''),
+    ]
+    wr = csv.writer(sys.stdout,
+        dialect='excel',
+        # quoting=csv.QUOTE_NONNUMERIC,
+    )
+    for x in headers:
+        wr.writerow(x)
+    for x in get_class_list(meta):
+        wr.writerow(x[:3])
  
+
+def dump_excel_marks(meta, include_canceled=False):
+    hdr1 = ['ID number', 'Surname', 'Given name(s)']
+    hdr2 = ['Maximum', '', '']
+    hdr3 = ['Date', '', '']
+    wr = csv.writer(sys.stdout,
+        dialect='excel',
+        # quoting=csv.QUOTE_NONNUMERIC,
+    )
+    #@
+    print '###  The header lines are incomplete!  ###'
+    wr.writerow(hdr1)
+    wr.writerow(hdr2)
+    wr.writerow(hdr3)
+    for x in get_class_list(meta, include_canceled):
+        ys = get_marks(meta, x.id)
+        ms = [x.id, x.surname, x.given_names]
+        for y in ys:
+            ms.append(y[1])
+        wr.writerow(ms)
+
+
 ###  M a i n  ----------------------------------------------------------------
 
 usage = '''Usage:
@@ -542,8 +591,15 @@ Dump various csv list on the standard output.
 
 Exactly one of the following options must be given:
 
-    -f --full   dump the full database
-    -x --excel  excel csv template for the marker
+    -f --full      dump the full database table by table
+                   (always include canceled students)
+
+    -t --template  excel csv template for the marker
+                   (never include canceled students)
+
+    -x --excell    dump a spreadsheet containing all marks
+                   in the format what the marker maintains.
+    -A --all       include canceled students
 ''',
 
 'upload' : '''
@@ -572,7 +628,9 @@ Exactly one of the following options must be given:
     -r --results    print all results(%) so far.
     -c --class      class list
     -m --email      email list
+    -A --all        include canceled students
 ''',
+
 'cancel': '''
     course-util cancel [option] db-file csv-file | student_id [student_id ...]
 
@@ -597,24 +655,40 @@ def main():
     opt_parser.add_option('-h', '--help', 
         action='store_true', dest='help', default=False,
         )
+
+    # dump options
     opt_parser.add_option('-f', '--full', 
         action='store_true', dest='fulldump', default=False,
         )
-    opt_parser.add_option('-r', '--results', 
-        action='store_true', dest='results', default=False,
+    opt_parser.add_option('-t', '--template', 
+        action='store_true', dest='template', default=False,
         )
+    opt_parser.add_option('-x', '--excel', 
+        action='store_true', dest='excel', default=False,
+        )
+
+    # print options
     opt_parser.add_option('-m', '--email', 
         action='store_true', dest='email', default=False,
         )
     opt_parser.add_option('-c', '--class', 
         action='store_true', dest='classlist', default=False,
         )
-    opt_parser.add_option('-x', '--excel', 
-        action='store_true', dest='excel', default=False,
+    opt_parser.add_option('-r', '--results', 
+        action='store_true', dest='results', default=False,
         )
+
+    # whether to include canceled students into prints or some dumps
+    opt_parser.add_option('-A', '--all', 
+        action='store_true', dest='include_cancelled', default=False,
+        )
+
+    # upload options
     opt_parser.add_option('-F', '--force', 
         action='store_true', dest='force_flag', default=False,
         )
+
+    # cancel
     opt_parser.add_option('-C', '--csv', 
         action='store_true', dest='csv_flag', default=False,
         )
@@ -651,10 +725,12 @@ def main():
         meta = meta_auto_load(engine)
         if options.email or options.classlist or options.results:
             opt_parser.error('invalid option')
-        elif options.excel:
-            raise NotImplementedError
+        elif options.template:
+            dump_template_for_marker(meta)
         elif options.fulldump:
             fulldump(meta)
+        elif options.excel:
+            dump_excel_marks(meta, options.include_cancelled)
         else:
             opt_parser.error('missing option')
 
@@ -663,14 +739,14 @@ def main():
             opt_parser.error('incorrect number of arguments')
         engine = sa.create_engine('sqlite:///%s' % args[1])
         meta = meta_auto_load(engine)
-        if options.excel or options.fulldump:
+        if options.template or options.fulldump:
             opt_parser.error('invalid option')
         elif options.email:
-            print_email(meta)
+            print_email(meta, options.include_cancelled)
         elif options.classlist:
-            raise NotImplementedError
+            print_class_list(meta, options.include_cancelled)
         elif options.results:
-            print_results(meta)
+            print_results(meta, options.include_cancelled)
         else:
             opt_parser.error('missing option')
 
