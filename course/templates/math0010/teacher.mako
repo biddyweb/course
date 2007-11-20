@@ -17,8 +17,17 @@
 </%def>
 
 
-<h1>Teacher Area</h1>
-<br/>
+<h1>Results</h1>
+<div style="float:right;">
+    <a href="${h.url_for('math0010', action='logout')}">logout</a>
+    &nbsp;
+    <a href="${h.url_for('math0010')}">back to main page</a>
+    <br/>
+    <br/>
+    Student Count = ${c.student_count}
+    <br/>
+</div>
+<br style="clear:both;"/>
 % if c.message:
 <blockquote>
 <pre>
@@ -27,12 +36,11 @@ ${c.message}
 </blockquote>
 % endif
 <div>
-  <h3> Students' Details </h3>
 <table>
   <tr>
     <th scope='col'>ID</th>
     <th scope='col'>Name</th>
-    <th scope='col'>Email</th>
+##    <th scope='col'>Email</th>
 ##    <th scope='col'>Program</th>
 ##    <th scope='col'>Major</th>
 % for x in c.all_marks[0][1:]:
@@ -47,18 +55,26 @@ class_td = ['', 'alt']
 % for x in range(len(c.all_marks)):
   <tr>
     <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].id}</td>
-    <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].surname}
-    ,&nbsp; ${c.all_marks[x][0].given_names}</td>
-    <td class="${class_td[x % len(class_td)]}" style="text-align: center;">
+    <td class="${class_td[x % len(class_td)]}">
     <% email = c.all_marks[x][0].email %>
     % if email:
       <a href="mailto:${email}">
-        <img src="${h.url_for('/graphics/email.png')}" alt='Email' />
+        ${c.all_marks[x][0].surname}, &nbsp; ${c.all_marks[x][0].given_names}
       </a>
     % else:
-        <img src="${h.url_for('/graphics/not_available.png')}" alt='N/A' />
+        ${c.all_marks[x][0].surname}, &nbsp; ${c.all_marks[x][0].given_names}
     % endif
+
     </td>
+##    <td class="${class_td[x % len(class_td)]}" style="text-align: center;">
+##    % if email:
+##      <a href="mailto:${email}">
+##        <img src="${h.url_for('/graphics/email.png')}" alt='Email' />
+##      </a>
+##    % else:
+##        <img src="${h.url_for('/graphics/not_available.png')}" alt='N/A' />
+##    % endif
+##    </td>
 ##    <td class="${class_td[x % len(class_td)]}"> ${c.all_marks[x][0].program}</td>
 ##    <td class="${class_td[x % len(class_td)]}">${c.all_marks[x][0].major}</td>
 % for y in c.all_marks[x][1:]:
@@ -79,6 +95,9 @@ class_td = ['', 'alt']
     ,&nbsp;<span> <a href="${h.url_for('/downloads/%s'%x)}">${x}</a> </span>
 % endfor
 
+<br/>
+<h3>Applications</h3>
+<a href="${h.url_for('math0010', action='polynom')}">polynom</a>
 
 </div>
 <br/>
