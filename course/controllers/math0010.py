@@ -120,13 +120,13 @@ class Math0010Controller(BaseController):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_info' in session:
             log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
-                          'Logout.'%session['login_info']
+                          ' Logout.'%session['login_info']
+            del session['login_info']  
         else:
-            log_message = ': Logout requested but not logged in.'\
-                          %session['login_info']
+            log_message = ': Logout requested but not logged in.'
         log.info('[logout]: [%s]: %s'%(ip_address,log_message))
-        del session['login_id']  
-        del session['login_info']  
+        if 'login_id' in session:
+            del session['login_id']  
         session.save()
         redirect_to(action='index')
 
