@@ -13,26 +13,24 @@
           letter-spacing: 2px;
           text-transform: uppercase;
           text-align: left;
-          padding: 6px 6px 6px 12px;
+          padding: 6px 0px 6px 0px;
           background: #CAE8EA;
       }
       th.spec {   
           border-left: 1px solid #C1DAD7;
           border-top: 0;
-          background: #fff 
-          url(${h.url_for('/graphics/bullet1.gif')}) no-repeat;
+          background: #fff; 
       }
       th.specalt {
           border-left: 1px solid #C1DAD7;
           border-top: 0;
           background: #f5fafa;
-          url(${h.url_for('/graphics/bullet2.gif')}) no-repeat;
       }
       td {
           border-right: 1px solid #C1DAD7;
           border-bottom: 1px solid #C1DAD7;
           background: #fff;
-          padding: 6px 6px 6px 12px;
+          padding: 6px 0px 6px 0px;
       }
   
   
