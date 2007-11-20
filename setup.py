@@ -8,7 +8,7 @@ except ImportError:
 import os, sys
 import course
 
-_course_version = '0.1.4'
+_course_version = '0.1.5'
 
 # NICE HACK by P. Dobcsanyi
 def course_egg_path():
@@ -44,7 +44,7 @@ setup(
     test_suite='nose.collector',
     package_data={
     #   'course': ['i18n/*/LC_MESSAGES/*.mo']
-        'course': ['public/graphics/*', 
+        'course': ['public/.*', 
                    'templates/*.mako', 'templates/*/*.mako'], 
     },
     #message_extractors = {'course': [
