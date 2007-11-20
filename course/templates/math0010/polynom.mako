@@ -79,6 +79,12 @@
 
 
 <h1>Factoring Polynomials</h1>
+<div style="float:right;">
+    <a href="${h.url_for('math0010', action='logout')}">logout</a>
+    &nbsp;
+    <a href="${h.url_for('math0010')}">back to main page</a>
+</div>
+<br style="clear:both;"/>
 
 <div>
     <span>Degree</span>
