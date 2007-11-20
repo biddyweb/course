@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
-import os.path
+import os.path 
+from subprocess import Popen, PIPE
 
 from course.lib.base import *
 from course import model
@@ -38,14 +39,14 @@ class Math0010Controller(BaseController):
         else:
             c.error_msg = 'No login id given <br/> Go to the main page'\
                           ' to login.'
-            log.info('[LOGIN]: [%s]: : No Login ID Given.'%ip_address)
+            log.info('[login]: [%s]: : No Login ID Given.'%ip_address)
             return render('/error.mako')
 
         students = model.course_db.get_student(model.meta, id)
         if students == []:
             c.error_msg = 'No Student with ID=%s <br/> Go to main page to'\
                           ' login'%id
-            log.info('[LOGIN]: [%s]: [%s]: Student ID Not Found.'\
+            log.info('[login]: [%s]: [%s]: Student ID Not Found.'\
                      %(ip_address, id))
             return render('/error.mako')
         elif model.course_db.isCancelled(model.meta, id):
@@ -56,7 +57,7 @@ class Math0010Controller(BaseController):
             log_message = '[%(id)s] %(surname)s,%(given_names)s: '\
                           'De-registered student attempted login.'\
                           %students[0]
-            log_message = '[LOGIN]: [%s]: %s'%(ip_address, log_message)
+            log_message = '[login]: [%s]: %s'%(ip_address, log_message)
             log.info(log_message)
             return render('/error.mako')
         else:
@@ -68,20 +69,20 @@ class Math0010Controller(BaseController):
             if log_flag:
                 log_message = '[%(id)s] %(surname)s,%(given_names)s: '\
                               'Teacher Logged in.'%students[0]
-                log_message = '[LOGIN]: [%s]: %s'%(ip_address, log_message)
+                log_message = '[login]: [%s]: %s'%(ip_address, log_message)
                 log.info(log_message)
             redirect_to(action='teacher_area') 
         else:
             if log_flag:
                 log_message = '[%(id)s] %(surname)s, %(given_names)s: '\
                               'Student Logged in.'%students[0]
-                log.info('[LOGIN]: [%s]: %s'%(ip_address, log_message))
+                log.info('[login]: [%s]: %s'%(ip_address, log_message))
             redirect_to(action='student_area')
 
     def student_area(self):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log.info('[STUDENT-AREA]: [%s]: : NO Student ID Found!'\
+            log.info('[student-area]: [%s]: : NO Student ID Found!'\
                      %(ip_address))
             return render('/nologin.mako')
         c.student_info = session['login_info']
@@ -94,14 +95,14 @@ class Math0010Controller(BaseController):
     def teacher_area(self):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log.info('[TEACHER-AREA]: [%s]: : NO ID Found!'\
+            log.info('[teacher-area]: [%s]: : NO ID Found!'\
                      %(ip_address))
             return render('/nologin.mako')
         if not model.course_db.isSudo(model.meta, session['login_id']):
             c.error_msg = 'Invalid Login ID'
             log_message = '[%(id)s] %(surname)s, %(given_names)s: '\
                           'NOT A Teacher!'%session['login_info']
-            log.info('[TEACHER-AREA]: [%s]: %s'%(ip_address,log_message))
+            log.info('[teacher-area]: [%s]: %s'%(ip_address,log_message))
             return render('/error.mako')
         students = model.course_db.get_class_list(model.meta)
         c.all_marks = []
@@ -109,6 +110,7 @@ class Math0010Controller(BaseController):
             row = [x]
             row += model.course_db.get_results(model.meta, x.id)
             c.all_marks.append(row)
+        c.student_count = len(students)
         c.message = h.get_msg(g.msg_dir).strip() 
         c.files = h.get_fnames(g.downloads_dir)
         c.teacher_info = session['login_info']
@@ -122,7 +124,7 @@ class Math0010Controller(BaseController):
         else:
             log_message = ': Logout requested but not logged in.'\
                           %session['login_info']
-        log.info('[LOGOUT]: [%s]: %s'%(ip_address,log_message))
+        log.info('[logout]: [%s]: %s'%(ip_address,log_message))
         del session['login_id']  
         del session['login_info']  
         session.save()
@@ -131,56 +133,65 @@ class Math0010Controller(BaseController):
     def downloads(self, id=''):
         ip_address = request.environ['REMOTE_ADDR']
         if 'login_id' not in session:
-            log.info( '[DOWNLOADS]: [%s]: : File "%s" requested '\
+            log.info( '[downloads]: [%s]: : File "%s" requested '\
                       'without login'%(ip_address, id))
             return render('/nologin.mako')
         elif id == '':
             log_message = '[%(id)s] %(surname)s, %(given_names)s:'\
                           'Attempted list of downloads.'\
                           %session['login_info']
-            log.info('[DOWNLOADS]: [%s]: %s'%(ip_address, log_message))
+            log.info('[downloads]: [%s]: %s'%(ip_address, log_message))
             c.error_msg = 'Invalid use of download area'
             return render('/error.mako')
         elif id not in h.get_fnames(g.downloads_dir):
             log_message = '[%(id)s] %(surname)s, %(given_names)s'\
                           %session['login_info']
-            log.info('[DOWNLOADS]: [%s]: %s: "%s" requested but '\
+            log.info('[downloads]: [%s]: %s: "%s" requested but '\
                      'unavailable.'%(ip_address, log_message, id))
             c.error_msg = 'Invalid use of download area'
             return render('/error.mako')
         else:
             log_message = '[%(id)s] %(surname)s, %(given_names)s'\
                           %session['login_info']
-            log.info('[DOWNLOADS]: [%s]: %s: "%s" downloaded.'\
+            log.info('[downloads]: [%s]: %s: "%s" downloaded.'\
                      %(ip_address, log_message, id))
             return self._serve_file(os.path.join(g.downloads_dir, id))
 
-    def synthetic_division(self):
-#        ip_address = request.environ['REMOTE_ADDR']
-#        if 'login_id' not in session:
-#            log.info('[synthetic_division]:[%s]::User not logged in.'\
-#                     %(ip_address))
-#            return render('/nologin.mako')
-        return render('/math0010/synthetic.mako')
-
-    def synthetic_calc(self):
-#        ip_address = request.environ['REMOTE_ADDR']
-#        if 'login_id' not in session:
-#            log.info('[synthetic_division]:[%s]::User not logged in.'\
-#                     %(ip_address))
-#            return render('/nologin.mako')
-        if 'degree' in request.params and request.params['degree'] != '':
-            cs = []
-            for x in range(int(request.params['degree'])+1):
-                cs.append(request.params['c%s'%x])
-        else:
-            c.error_msg = 'Invalid parameters to synthetic calculator.'
-            log.info('[synthetic_division]: [%s]: : '%(ip_address))
-            return render('/error.mako')
-        c.msg = ", ".join(cs)
-        return render('/math0010/synthetic_res.mako')
-
-
+    def polynom(self):
+        ip_address = request.environ['REMOTE_ADDR']
+        if 'login_id' not in session or \
+            not model.course_db.isSudo(model.meta, session['login_id']):
+            log.info('[synthetic_division]: [%s]: : User not logged in.'\
+                     %(ip_address))
+            return render('/nologin.mako')
+        c.error = ""
+        try:
+            if 'degree' in request.params and request.params['degree'] != '':
+                cs = []
+                for x in range(int(request.params['degree'])+1):
+                    cs.append(request.params['c%s'%x])
+                cmd = [g.polynom]+cs
+                c.polynom_q = []
+                for x in cs:
+                    c.polynom_q.append(int(x))
+                if not cs:
+                    raise Exception("No parameters passed")
+                if not c.error:
+                    polynom= Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
+                    c.polynom_result = polynom[0]
+                    errors = polynom[1].strip()
+                    if errors:
+                        raise Exception(errors)
+        except TypeError, KeyError:
+            log.info('[polynom]: [%s]: : Invalid Use'%(ip_address))
+            c.error = 'Invalid parameters to polynom'
+        except OSError, inst:
+            log.info('[polynom]: %s'%inst)
+            c.error = 'Internal error occured'
+        except Exception, inst:
+            log.info('[polynom]: %s'%inst)
+            c.error = 'Internal error occured'
+        return render('/math0010/polynom.mako')
 
     def _serve_file(self, path):
         """ Private Function
