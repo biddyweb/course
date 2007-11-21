@@ -161,7 +161,82 @@ def populate_students(meta, db_list):
 
 import datetime
 
-def insert_results(engine, csv_file, force=False):
+def check_students(meta, students, type='curr'):
+    '''
+    To check if student list matches class list in DB if type='curr'.
+    Otherwise check if students can be added safely to class list 
+    :Param:
+        students = list of student id's to check
+        student list is emptied upon exit
+        type = 'curr' | 'new'
+    :Result:
+        list of errors associated with the input if available otherwise
+        [] is returned.
+        Errors if type='curr':
+        students in students param list and not in class list
+        students in class list and not in students param list
+        students repeated within student param list
+        Errors if type='new':
+        students in students param list and class list
+        students repeated within student param list
+    '''
+    errors = []
+    class_list = set([x.id for x in get_class_list(meta)])
+    while students:
+        x = students.pop()
+        if x in students:
+            count = 1
+            while x in students:
+                students.remove(x)
+                count+=1
+            errors.append("ID %s repeated %s times"%(x,count))
+        if x in class_list:
+            if type != 'curr':
+                errors.append("ID %s already in class"%(x))
+            class_list.remove(x)
+        elif type == 'curr':
+            errors.append("ID %s not registered in class"%(x))
+    for x in class_list:
+        errors.append("Registered ID %s not found in list"%(x))
+    return errors
+
+def check_results(meta, test, students):
+    '''
+    To check if students' results can be inserted into db.
+    :Param:
+        students = list of student id's 
+        student list is emptied upon exit
+        test = test for which results are to be inserted
+    :Result:
+        list of errors associated with the input if available otherwise
+        [] is returned.
+        Errors:
+        students that already have a result for this test
+        students that are not in class list
+        students that are not mentioned in the list but in class list
+        students repeated within student param list
+    '''
+    errors = check_students(meta, students[:], type='curr')
+    test_list = set([x[0] for x in get_test_results(meta, test)])
+    while students:
+        x = students.pop()
+        while x in students:
+            students.remove(x)
+        if x in test_list:
+            errors.append("Mark exists for %s, test %s"%(x,test))
+    return errors
+
+def check_test(meta, id):
+    '''
+    Returns True if test 'id' exists in DB.
+    '''
+    tt = meta.tables['tests']
+    r1 = tt.select(tt.c.test_id == id).execute()
+    if r1.fetchall():
+        return True
+    return False
+
+def insert_results(meta, csv_file, force=False):
     list = read_csv_list(csv_file)
     # Compiling test entry to insert test into tests table
     header = [ 
@@ -170,7 +245,7 @@ def insert_results(engine, csv_file, force=False):
         ('Date', 'date') 
     ]
     if len(list)<3:
-        msg = 'CSV too short, must include at least a test to insert'
+        msg = 'CSV too short, must include three headers describing test'
         raise Exception(msg)
     test = {}
     for i in range(3):
@@ -182,37 +257,24 @@ def insert_results(engine, csv_file, force=False):
             else:
                 test[header[i][1]] = list[i][1]
     test['date'] = datetime.datetime.strptime(test['date'], '%d/%m/%y')
-    #engine.begin()
-    connection = engine.contextual_connect()
-    tr = connection.begin()
-    try:
-        error_msgs = []
-        # Inserting test into table
-        try:
-            insert_test(engine, test)
-        except Exception, inst:
-            error_msgs.append(str(inst))
-        ins_func = insert_result
-        # Inserting results into results table
+    errors = check_results(meta, test['test_id'], [x[0] for x in list[3:]])
+    if check_test(meta, test['test_id']):
+        errors.append("Test \"%s\" already in DB"%test['test_id'])
+    if not errors:
+        print >>sys.stderr, "No errors intercepted. Insert Begin:"
+        insert_test(meta, test)
+        print >>sys.stderr, "    Test \"%(test_id)s\" inserted"%test
         col_map = {'id': 0, 'marks': 1}
         test_id = test['test_id']
         for x in list[3:]:
             in_dict = {'test_id': test_id}
             for k,v in col_map.iteritems():
                 in_dict[k]=x[v]
-            try:
-                ins_func(connection, in_dict)
-            except Exception, inst:
-                error_msgs.append(str(inst))
-        if error_msgs:
-            print >>sys.stderr, "The following errors occured"
-            print >>sys.stderr, "\n".join(error_msgs)
-            raise Exception('Insert Errors')
-        print >>sys.stderr, "Commit called"
-        tr.commit()
-    except:
-        tr.rollback()
-        raise
+            insert_result(meta, in_dict)
+            print >>sys.stderr, "    Student %(id)s marks updated"%in_dict
+    else:
+        print >>sys.stderr, "The following errors were intercepted:"\
+                            "\n    %s"%"\n    ".join(errors)
         
 def insert_students(engine, csv_file, force=False):
     header = [ 'id', 'surname', 'given_names', 
@@ -274,7 +336,7 @@ def insert_student(connection, student_info):
     else:
         connection.execute(st.insert(), **student_info)
 
-def insert_result(connection, student_info):
+def insert_result(meta, student_info):
     '''
     Insert a student's test result into the db.
     :Param:
@@ -284,21 +346,9 @@ def insert_result(connection, student_info):
         'test_id'       : the id of the test
         'marks'         : the students mark in test 
     '''
-    meta = meta_auto_load(connection)
-    rs = meta.tables['results']
-    r1 = connection.execute(rs.select(
-        (rs.c.id == student_info['id']) & 
-        (rs.c.test_id ==  student_info['test_id'])
-    ))
-    res = r1.fetchall()
-    if res:
-        for x in res:
-            message = "mark already assigned '%(id)s,%(test_id)s'<-%(marks)s"%x
-        raise Exception(message)
-    else:
-        connection.execute(rs.insert(), **student_info)
+    meta.tables['results'].insert().execute(**student_info)
 
-def insert_test(connection, test_info):
+def insert_test(meta, test_info):
     '''
     Insert a test into the db.
     :Param:
@@ -308,18 +358,7 @@ def insert_test(connection, test_info):
         'date'      : the date of the test
         'max_marks' : the maximum mark in test 
     '''
-    meta = meta_auto_load(connection)
-    tt = meta.tables['tests']
-    r1 = connection.execute(tt.select(
-        tt.c.test_id ==  test_info['test_id']
-    ))
-    res = r1.fetchall()
-    if res:
-        for x in res:
-            message = "Already in db '%(test_id)s'<-%(date)s,%(max_marks)s"%x
-        raise Exception(message)
-    else:
-        connection.execute(tt.insert(), **test_info)
+    meta.tables['tests'].insert().execute(**test_info)
 
 def update_student(connection, student_info):
     '''
@@ -415,12 +454,31 @@ def get_results(meta, id):
     rs = s.execute()
     ys = []
     for x in rs:
-        if x.marks:
+        if x.marks != '':
             ys.append((x.test_id, x.marks * 100.0 / x.max_marks))
         else:
             ys.append((x[0], '---'))
     return ys
  
+def get_test_results(meta, id):
+    '''
+    return [(student_id, percentage), ...] for the given test id
+    '''
+    tt = meta.tables['tests']
+    rt = meta.tables['results']
+    s = sa.select(
+        [rt.c.id, rt.c.marks, tt.c.max_marks],
+        (id == tt.c.test_id) &
+        (tt.c.test_id == rt.c.test_id)
+        )
+    rs = s.execute()
+    ys = []
+    for x in rs:
+        if x.marks != '':
+            ys.append((x.id, x.marks * 100.0 / x.max_marks))
+        else:
+            ys.append((x[0], '---'))
+    return ys
 
 def get_class_list(meta, include_canceled=False):
     st = meta.tables['students']
@@ -763,7 +821,7 @@ def main():
         if options.classlist:
             insert_students(engine, csv_file, force_flag) 
         elif options.results:
-            insert_results(engine, csv_file, force_flag) 
+            insert_results(meta_auto_load(engine), csv_file, force_flag) 
         else:
             opt_parser.error('missing or invalid option')
 
