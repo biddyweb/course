@@ -24,7 +24,7 @@
     <a href="${h.url_for('math0010')}">back to main page</a>
     <br/>
     <br/>
-    Student Count = ${c.student_count}
+    ${c.student_count} Students
     <br/>
 </div>
 <br style="clear:both;"/>

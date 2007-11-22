@@ -7,13 +7,13 @@
       .error { color: #990000; }
       img { border: 0px; }
       th {
+          font-size: 90%;
           border-right: 1px solid #C1DAD7;
           border-bottom: 1px solid #C1DAD7;
           border-top: 1px solid #C1DAD7;
           letter-spacing: 2px;
-          text-transform: uppercase;
           text-align: left;
-          padding: 6px 0px 6px 0px;
+          padding: 6px 6px 6px 12px;
           background: #CAE8EA;
       }
       th.spec {   
@@ -27,10 +27,11 @@
           background: #f5fafa;
       }
       td {
+          font-size: 90%;
           border-right: 1px solid #C1DAD7;
           border-bottom: 1px solid #C1DAD7;
           background: #fff;
-          padding: 6px 0px 6px 0px;
+          padding: 6px 6px 6px 12px;
       }
   
   
