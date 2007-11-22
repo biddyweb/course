@@ -14,3 +14,4 @@ class Globals(object):
         self.msg_dir = config['course.msg_dir']
         self.downloads_dir = config['course.downloads_dir']
         self.polynom = config['course.polynom_app']
+        self.name = config['course.name']
