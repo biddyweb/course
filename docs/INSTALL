@@ -134,6 +134,15 @@ If you want to remove the script from startup
 
 == Deploying Behind Apache2 ==
 
+=== CGI ===
+
+Add the following to configuration::
+
+    ScriptAlias /math0010 /var/local/course/bin/cgi-starter.py
+
+
+=== Proxying ===
+
 To deploy behind apache2 you need to install some modules by typing the
 following commands:
     sudo a2enmod proxy
@@ -176,7 +185,7 @@ the port entry should map to 5000 under the [server:main] section. Feel
 free to change these values correlating the changes both to the
 production.ini file and the apache-site-config file.
 
-== Use with mod_wsgi ==
+=== mod_wsgi ===
 
 Install the most recent mod_wsgi for Apache2
 
