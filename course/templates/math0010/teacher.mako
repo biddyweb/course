@@ -90,7 +90,7 @@ class_td = ['', 'alt']
 </div>
 
 <h3>Downloads</h3>
-    <span> <a href="${h.url_for('/downloads/%s'%x)}">${c.files[0]}</a> </span>
+    <span> <a href="${h.url_for('/downloads/%s'%c.files[0])}">${c.files[0]}</a> </span>
 % for x in c.files[1:]:
     ,&nbsp;<span> <a href="${h.url_for('/downloads/%s'%x)}">${x}</a> </span>
 % endfor
