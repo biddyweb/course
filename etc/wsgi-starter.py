@@ -1,11 +1,14 @@
-# wsgi applicationb starter for mod_wsgi
+# wsgi application starter for "course"
 
+# production
 course_dir  = '/var/local/course'
-egg_dir     = '%s/pylib' % course_dir
-config_file = 'config:%s/production.ini' % course_dir
+course_lib_dir  = '%s/pylib' % course_dir
+config_file = '%s/production.ini' % course_dir
 
 import sys
-sys.path.insert(0, egg_dir)
+sys.path.insert(0, course_lib_dir)
+from paste.script.util.logging_config import fileConfig
 from paste.deploy import loadapp
 
-application = loadapp(config_file)
+fileConfig(config_file) 
+application = loadapp('config:%s' % config_file)
