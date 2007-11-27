@@ -178,10 +178,13 @@ def check_students(meta, students, type='curr'):
         students repeated within student param list
         Errors if type='new':
         students in students param list and class list
+        students in students param list, not in class list but in db. 
         students repeated within student param list
     '''
     errors = []
+    st = meta.tables['students']
     class_list = set([x.id for x in get_class_list(meta)])
+    full_list = set([x.id for x in st.select().execute()])
     while students:
         x = students.pop()
         if x in students:
@@ -191,13 +194,16 @@ def check_students(meta, students, type='curr'):
                 count+=1
             errors.append("ID %s repeated %s times"%(x,count))
         if x in class_list:
-            if type != 'curr':
+            if type == 'new':
                 errors.append("ID %s already in class"%(x))
             class_list.remove(x)
         elif type == 'curr':
             errors.append("ID %s not registered in class"%(x))
-    for x in class_list:
-        errors.append("Registered ID %s not found in list"%(x))
+        elif type == 'new' and x in full_list:
+            errors.append("ID %s in DB BUT not registered in class"%(x))
+    if type == 'cur':
+        for x in class_list:
+            errors.append("Registered ID %s not found in list"%(x))
     return errors
 
 def check_results(meta, test, students):
@@ -276,7 +282,7 @@ def insert_results(meta, csv_file, force=False):
         print >>sys.stderr, "The following errors were intercepted:"\
                             "\n    %s"%"\n    ".join(errors)
         
-def insert_students(engine, csv_file, force=False):
+def insert_students(meta, csv_file, force=False):
     header = [ 'id', 'surname', 'given_names', 
                'email', 'program', 'major' ]
     ins_func = insert_student
@@ -289,29 +295,21 @@ def insert_students(engine, csv_file, force=False):
             raise Exception('Error mismatch in header row')
     if len(header) != len(list[0]):
         raise Exception('Too many columns in csv file')
-    engine.begin()
-    connection = engine.contextual_connect()
-    try:
-        error_msgs = []
+    errors = check_students(meta, 
+        [x[col_map['id']] for x in list[1:]], 'new')
+    if not errors:
+        print >>sys.stderr, "No errors intercepted. Insert Begin:"
         for x in list[1:]:
             in_dict = {}
             for k,v in col_map.iteritems():
                 in_dict[k]=x[v]
-            try:
-                print >>sys.stderr, ", ".join(in_dict.values())
-                ins_func(connection, in_dict)
-            except Exception, inst:
-                error_msgs.append(str(inst))
-        if error_msgs:
-            print >>sys.stderr, "The following errors occured"
-            print >>sys.stderr, "\n".join(error_msgs)
-            raise Exception('Insert Errors')
-        engine.commit()
-    except:
-        engine.rollback()
-        raise
+            insert_student(meta, in_dict)
+            print >>sys.stderr, "    Student %(id)s was inserted"%in_dict
+    else:
+        print >>sys.stderr, "The following errors were intercepted:"\
+                            "\n    %s"%"\n    ".join(errors)
 
-def insert_student(connection, student_info):
+def insert_student(meta, student_info):
     '''
     Insert a student/teacher into the db.
     :Param:
@@ -326,15 +324,7 @@ def insert_student(connection, student_info):
         'major'         : user's major (<= 30 chars in length)
                           PROF if the user is a professor.
     '''
-    meta = meta_auto_load(connection)
-    st = meta.tables['students']
-    r1 = connection.execute(st.select(st.c.id == student_info['id']))
-    if r1.fetchall():
-        message =   "ID %(id)s already exists in student "\
-                    "table"%student_info
-        raise Exception(message)
-    else:
-        connection.execute(st.insert(), **student_info)
+    return meta.tables['students'].insert().execute(**student_info)
 
 def insert_result(meta, student_info):
     '''
@@ -346,7 +336,7 @@ def insert_result(meta, student_info):
         'test_id'       : the id of the test
         'marks'         : the students mark in test 
     '''
-    meta.tables['results'].insert().execute(**student_info)
+    return meta.tables['results'].insert().execute(**student_info)
 
 def insert_test(meta, test_info):
     '''
@@ -358,7 +348,7 @@ def insert_test(meta, test_info):
         'date'      : the date of the test
         'max_marks' : the maximum mark in test 
     '''
-    meta.tables['tests'].insert().execute(**test_info)
+    return meta.tables['tests'].insert().execute(**test_info)
 
 def update_student(connection, student_info):
     '''
@@ -813,15 +803,16 @@ def main():
             opt_parser.error('incorrect number of arguments')
         engine = sa.create_engine('sqlite:///%s' % args[1],
             strategy='threadlocal')
+        meta = meta_auto_load(engine)
         csv_file = args[2]
         force_flag = False 
         if options.force_flag:
             force_flag = True
             raise NotImplementedError
         if options.classlist:
-            insert_students(engine, csv_file, force_flag) 
+            insert_students(meta, csv_file, force_flag) 
         elif options.results:
-            insert_results(meta_auto_load(engine), csv_file, force_flag) 
+            insert_results(meta, csv_file, force_flag) 
         else:
             opt_parser.error('missing or invalid option')
 
