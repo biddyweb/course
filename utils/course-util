@@ -350,7 +350,7 @@ def insert_test(meta, test_info):
     '''
     return meta.tables['tests'].insert().execute(**test_info)
 
-def update_student(connection, student_info):
+def update_student(meta, student_info):
     '''
     Update a student/teacher info.
     
@@ -369,14 +369,12 @@ def update_student(connection, student_info):
         'major'         : user's major (<= 30 chars in length)
                           PROF if the user is a professor.
     '''
-    meta = meta_auto_load(connection)
     st = meta.tables['students']
-    if not (connection.execute(
-        st.update(st.c.id == student_info['id'],values=student_info)
-    ).rowcount):
+    if not st.update(st.c.id == student_info['id'],
+           values=student_info).execute().rowcount:
         raise Exception('No Student with ID %(id)s'%student_info)
 
-def cancel_students(connection, csv_file="", student_list=[]):
+def cancel_students(meta, csv_file="", student_list=[]):
     '''
     Cancel the student with the id's specified in student list or in the
     first column of a csv file. 
@@ -396,7 +394,7 @@ def cancel_students(connection, csv_file="", student_list=[]):
     for x in student_list: 
         student_info['id'] = x
         try:
-            update_student(connection, student_info)
+            update_student(meta, student_info)
             suc.append("%s successfully cancelled"%x)
         except Exception, inst:
             err.append(str(inst))
@@ -821,12 +819,13 @@ def main():
             opt_parser.error('incorrect number of arguments')
         engine = sa.create_engine('sqlite:///%s' % args[1],
             strategy='threadlocal')
+        meta = meta_auto_load(engine)
         if options.csv_flag:
             success_msgs, error_msgs = \
-                cancel_students(engine, csv_file = args[2])
+                cancel_students(meta, csv_file = args[2])
         else:
             success_msgs, error_msgs = \
-                cancel_students(engine, student_list = args[2:])
+                cancel_students(meta, student_list = args[2:])
         if success_msgs:
             print >>sys.stderr, "The following changes were done:"
             print >>sys.stderr, "  %s"%"\n  ".join(success_msgs)
