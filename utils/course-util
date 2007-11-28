@@ -171,17 +171,23 @@ def check_students(meta, students, type='curr'):
         type = 'curr' | 'new'
     :Result:
         list of errors associated with the input if available otherwise
-        [] is returned.
-        Errors if type='curr':
+        [] is returned. And a command dict which allows the calling
+        program to determine the function to use when forcing error data
+        into the db.
+        if type='curr':
+        Command dict is meaningless.
+        Errors:
         students in students param list and not in class list
         students in class list and not in students param list
         students repeated within student param list
-        Errors if type='new':
+        if type='new':
+        Errors:
         students in students param list and class list
         students in students param list, not in class list but in db. 
         students repeated within student param list
     '''
     errors = []
+    command = {}
     st = meta.tables['students']
     class_list = set([x.id for x in get_class_list(meta)])
     full_list = set([x.id for x in st.select().execute()])
@@ -193,18 +199,21 @@ def check_students(meta, students, type='curr'):
                 students.remove(x)
                 count+=1
             errors.append("ID %s repeated %s times"%(x,count))
+        command[x] = 'I'
         if x in class_list:
             if type == 'new':
                 errors.append("ID %s already in class"%(x))
+                command[x] = 'U'
             class_list.remove(x)
         elif type == 'curr':
             errors.append("ID %s not registered in class"%(x))
         elif type == 'new' and x in full_list:
             errors.append("ID %s in DB BUT not registered in class"%(x))
+            command[x] = 'U'
     if type == 'cur':
         for x in class_list:
             errors.append("Registered ID %s not found in list"%(x))
-    return errors
+    return (errors, command)
 
 def check_results(meta, test, students):
     '''
@@ -215,22 +224,29 @@ def check_results(meta, test, students):
         test = test for which results are to be inserted
     :Result:
         list of errors associated with the input if available otherwise
-        [] is returned.
+        [] is returned. And a command dict described bellow.
         Errors:
         students that already have a result for this test
         students that are not in class list
         students that are not mentioned in the list but in class list
         students repeated within student param list
+        Command:
+        Returns a hash of the student_id as key folowed by either U or I
+        as the value indicating that the mark would need updating or
+        inserting when a force is issued.
     '''
-    errors = check_students(meta, students[:], type='curr')
+    command = {}
+    errors, xcom = check_students(meta, students[:], type='curr')
     test_list = set([x[0] for x in get_test_results(meta, test)])
     while students:
         x = students.pop()
         while x in students:
             students.remove(x)
+        command[x] = 'I'
         if x in test_list:
+            command[x] = 'U'
             errors.append("Mark exists for %s, test %s"%(x,test))
-    return errors
+    return (errors, command)
 
 def check_test(meta, id):
     '''
@@ -263,20 +279,33 @@ def insert_results(meta, csv_file, force=False):
             else:
                 test[header[i][1]] = list[i][1]
     test['date'] = datetime.datetime.strptime(test['date'], '%d/%m/%y')
-    errors = check_results(meta, test['test_id'], [x[0] for x in list[3:]])
+    errors, com = check_results(meta, test['test_id'], [x[0] for x in list[3:]])
+    force_test = False
     if check_test(meta, test['test_id']):
         errors.append("Test \"%s\" already in DB"%test['test_id'])
-    if not errors:
-        print >>sys.stderr, "No errors intercepted. Insert Begin:"
-        insert_test(meta, test)
-        print >>sys.stderr, "    Test \"%(test_id)s\" inserted"%test
+        if force:
+            force_test = True 
+    if not errors or force:
+        if not force:
+            print >>sys.stderr, "No errors intercepted. Insert Begin:"
+        else:
+            print >>sys.stderr, "Insert/Update Begin:"
+        if not force_test:
+            insert_test(meta, test)
+            print >>sys.stderr, "    Test \"%(test_id)s\" inserted"%test
+        else:
+            update_test(meta, test)
+            print >>sys.stderr, "    Test \"%(test_id)s\" updated"%test
         col_map = {'id': 0, 'marks': 1}
         test_id = test['test_id']
         for x in list[3:]:
             in_dict = {'test_id': test_id}
             for k,v in col_map.iteritems():
                 in_dict[k]=x[v]
-            insert_result(meta, in_dict)
+            if com[in_dict['id']] == 'I':
+                insert_result(meta, in_dict)
+            else:
+                update_result(meta, in_dict)
             print >>sys.stderr, "    Student %(id)s marks updated"%in_dict
     else:
         print >>sys.stderr, "The following errors were intercepted:"\
@@ -349,6 +378,41 @@ def insert_test(meta, test_info):
         'max_marks' : the maximum mark in test 
     '''
     return meta.tables['tests'].insert().execute(**test_info)
+
+def update_result(meta, student_info):
+    '''
+    Update a student's test result 
+    :Param:
+    student_info:   A dict containing the following keys and
+                    corresponding values.
+        'id'            : the students id
+        'test_id'       : the id of the test
+        'marks'         : the students mark in test 
+    
+    '''
+    rt = meta.tables['results']
+    if not rt.update(sa.sql.and_(
+            rt.c.id == student_info['id'],
+            rt.c.test_id == student_info['test_id']
+            ),values=student_info).execute().rowcount:
+        raise Exception(
+            'No %(test_id)s Mark for %(id)s to update'%student_info)
+
+def update_test(meta, test_info):
+    '''
+    Insert a test into the db.
+    :Param:
+    test_info:   A dict containing the following keys and
+                 corresponding values.
+        'test_id'   : the test id
+        'date'      : the date of the test
+        'max_marks' : the maximum mark in test 
+    '''
+    tt = meta.tables['tests']
+    if not tt.update(tt.c.test_id == test_info['test_id'],
+           values=test_info).execute().rowcount:
+        raise Exception('No test %(test_id)s to update'%test_info)
+
 
 def update_student(meta, student_info):
     '''
@@ -806,7 +870,6 @@ def main():
         force_flag = False 
         if options.force_flag:
             force_flag = True
-            raise NotImplementedError
         if options.classlist:
             insert_students(meta, csv_file, force_flag) 
         elif options.results:
