@@ -324,16 +324,23 @@ def insert_students(meta, csv_file, force=False):
             raise Exception('Error mismatch in header row')
     if len(header) != len(list[0]):
         raise Exception('Too many columns in csv file')
-    errors = check_students(meta, 
+    errors,com = check_students(meta, 
         [x[col_map['id']] for x in list[1:]], 'new')
-    if not errors:
-        print >>sys.stderr, "No errors intercepted. Insert Begin:"
+    if not errors or force:
+        if not force:
+            print >>sys.stderr, "No errors intercepted. Insert Begin:"
+        else:
+            print >>sys.stderr, "Insert/Update Begin:"
         for x in list[1:]:
             in_dict = {}
             for k,v in col_map.iteritems():
                 in_dict[k]=x[v]
-            insert_student(meta, in_dict)
-            print >>sys.stderr, "    Student %(id)s was inserted"%in_dict
+            if com[in_dict['id']] == 'I':
+                insert_student(meta, in_dict)
+                print >>sys.stderr, "    Student %(id)s was inserted"%in_dict
+            else:
+                update_student(meta, in_dict)
+                print >>sys.stderr, "    Student %(id)s was updated"%in_dict
     else:
         print >>sys.stderr, "The following errors were intercepted:"\
                             "\n    %s"%"\n    ".join(errors)
