@@ -18,7 +18,7 @@ Email: <a href="mailto:peter@cs.smu.ca">peter@cs.smu.ca</a>
 <br/>
 Office:  McNally North 111
 <br/>
-Office hours: Monday 11am - 12am, Thursday 7pm - 8pm
+Office hours: Dec 6,7,11 from 10:30-12:30 in McNally East Wing 110
 <br/>
 Phone: (902) 494-1080
 
@@ -58,13 +58,12 @@ ISBN 0-321-35692-6
 
 <p>
 <b>
-The Midterm Test will be held on Oct 23 Tuesday at 5:30
-in McNally East Wing 110.
+The Final Examination will be held on Dec 15 Saturday
+from 9:00 am until 12:00 pm in Loyola Academic 281.
 </b>
-It will contain problems based on all material covered up to the lecture
-on Oct 18. In terms of the sections of the textbook, that means: full
-Chapter P; full Chapter 1 except 1.5; and Sections 2.1, 2.2 and 2.3 from
-Chapter 2.
+It will contain problems based on all material covered in the lectures.
+In terms of the sections of the textbook,
+that means Chapter P and Chapters 1,2,3,4.
 </p>
 
 
