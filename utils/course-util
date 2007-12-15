@@ -278,7 +278,20 @@ def insert_results(meta, csv_file, force=False):
                 raise Exception(msg)
             else:
                 test[header[i][1]] = list[i][1]
-    test['date'] = datetime.datetime.strptime(test['date'], '%d/%m/%y')
+    if '/' in test['date']:
+        if len(test['date']) == 8:
+            # 31/12/07 format
+            test['date'] = datetime.datetime.strptime(test['date'], '%d/%m/%y')
+        if len(test['date']) == 10:
+            # 31/12/2007 format
+            test['date'] = datetime.datetime.strptime(test['date'], '%d/%m/%Y')
+        else:
+            raise ValueError('unrecognized date format: %s' % test['date'])
+    elif '-' in test['date'] and len(test['date']) == 10:
+        # 2007-12-07 format
+        test['date'] = datetime.datetime.strptime(test['date'], '%Y-%m-%d')
+    else:
+        raise ValueError('unrecognized date format: %s' % test['date'])
     errors, com = check_results(meta, test['test_id'], [x[0] for x in list[3:]])
     force_test = False
     if check_test(meta, test['test_id']):
@@ -500,6 +513,7 @@ def get_marks(meta, id):
 def get_results(meta, id):
     '''
     return [(test_id, percentage), ...] for the given student id
+    sorted by test date
     '''
     st = meta.tables['students']
     tt = meta.tables['tests']
@@ -510,6 +524,7 @@ def get_results(meta, id):
         (st.c.id == rt.c.id) &
         (tt.c.test_id == rt.c.test_id)
         )
+    s = s.order_by(tt.c.date)
     rs = s.execute()
     ys = []
     for x in rs:
